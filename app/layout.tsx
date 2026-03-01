@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 const links = [
   { name: "License Map", href: "/map" },
-  { name: "Map Status", href: "/map/status" },
+  { name: "Map Status", href: "/status" },
   { name: "News and Info", href: "/news" },
 ];
 
