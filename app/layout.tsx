@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavLinks from "@/components/nav-links";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +61,7 @@ export default function RootLayout({
                   </svg>
                 </label>
               </div>
-              <div className="mx-2 flex-1 px-2">Amateur Radio</div>
+              <div className="mx-2 flex-1 px-2"><Link href="/map">Amateur Radio</Link></div>
               <div className="hidden flex-none lg:block">
                 <NavLinks links={links} classes="menu menu-horizontal" />
               </div>
