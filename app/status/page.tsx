@@ -4,8 +4,32 @@ export default async function Page() {
   const { result, totals } = await getStatusData();
   return (
     <>
-      <h1>Status</h1>
-      <table>
+      <h1>License Map Status</h1>
+
+      <p>The table below shows the status of the geocoding.</p>
+      <ul>
+        <li>
+          <em>New:</em> The number of newly added or updated addresses which
+          have not been geocoded yet. Any non-zero number should reduce in the
+          coming hours.
+        </li>
+        <li>
+          <em>Successful</em>: The number of successfully geocoded addresses.
+          This represents unique pins on the map.
+        </li>
+        <li>
+          <em>Not found</em>: The number of addresses that the system attempted
+          to geocode but failed. Geocoding is not perfect. Sometimes the
+          geocoding service simply doesn’t understand the address for various
+          reasons.
+        </li>
+        <li>
+          <em>PO Box</em>: The number of addresses that it didn’t bother trying
+          to geocode because it looks like a PO Box.
+        </li>
+      </ul>
+
+      <table className="table-zebra max-w-3xl">
         <thead>
           <tr>
             <th>State</th>
