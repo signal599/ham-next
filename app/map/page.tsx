@@ -1,3 +1,14 @@
+"use client";
+
+import MapForm from "@/components/map-form";
+
 export default function Page() {
-  return <h1>Amateur Radio License Map</h1>;
+  function handleSubmit() {}
+
+  return (
+    <>
+      <h1>Amateur Radio License Map</h1>
+      <MapForm onSearch={handleSubmit} />
+    </>
+  );
 }
