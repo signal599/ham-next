@@ -1,17 +1,15 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState, useId } from "react";
 
-interface SearchFormProps {
-  onSearch: (type: string, value: string) => void;
+interface MapFormProps {
+  initialType: string;
+  initialQuery: string;
 }
 
-export default function MapForm({ onSearch }: SearchFormProps) {
-  const [inputValue, setInputValue] = useState("");
-  // Track the internal value ('c', 'g', etc.) for the logic,
-  // but keep a label for the UI.
-  const [selectedType, setSelectedType] = useState("c");
-
+export default function MapForm({ initialType, initialQuery }: MapFormProps) {
+  const [inputValue, setInputValue] = useState(initialQuery);
+  const [selectedType, setSelectedType] = useState(initialType);
   const textId = useId();
 
   // Mapping for the UI labels based on selection
@@ -22,10 +20,19 @@ export default function MapForm({ onSearch }: SearchFormProps) {
     a: "Street address",
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter();
+
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      onSearch(selectedType, inputValue);
+    const formData = new FormData(e.currentTarget);
+    const type = formData.get("query_type");
+    const q = formData.get("query");
+
+    if (type === 'c') {
+      router.push(`/map/${q}`);
+    }
+    else {
+      router.push(`/map/${type}/${q}`);
     }
   };
 
@@ -45,8 +52,9 @@ export default function MapForm({ onSearch }: SearchFormProps) {
             className="radio radio-primary radio-sm"
             checked={selectedType === value}
             onChange={() => {
+              console.log(value);
               setSelectedType(value);
-              setInputValue(""); // Optional: clear input when switching types
+              setInputValue("");
             }}
           />
           <span className="label-text text-base">{label}</span>
@@ -60,7 +68,6 @@ export default function MapForm({ onSearch }: SearchFormProps) {
       onSubmit={handleSubmit}
       className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8 p-6 bg-base-100 rounded-xl border border-base-200"
     >
-      {/* Left Column: Radio Options */}
       <div className="flex flex-col justify-start">
         <RadioItem label="Callsign" value="c" />
         <RadioItem label="Gridsquare" value="g" />
@@ -68,36 +75,25 @@ export default function MapForm({ onSearch }: SearchFormProps) {
         <RadioItem label="Street address" value="a" />
       </div>
 
-      {/* Right Column: Text Input and Submit */}
       <div className="flex flex-col gap-6">
-        {/* The Input Stack */}
         <div className="form-control w-full max-w-lg">
-          {/* 1. The Label */}
           <label htmlFor={textId} className="label py-1">
             <span className="label-text font-bold text-lg text-base-content">
               {labels[selectedType]}
             </span>
           </label>
 
-          {/* 2. The Input */}
           <input
             id={textId}
+            name="query"
             type="text"
-            placeholder={`Enter ${labels[selectedType].toLowerCase()}...`}
+            placeholder={`Enter ${labels[selectedType]}...`}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             className="input input-bordered w-full focus:input-primary"
           />
-
-          {/* 3. The Description (Span) */}
-          <label className="label py-1">
-            <span className="label-text-alt text-gray-500">
-              Enter a {labels[selectedType].toLowerCase()}.
-            </span>
-          </label>
         </div>
 
-        {/* 4. The Button (placed below the form-control) */}
         <button type="submit" className="btn btn-primary w-fit px-10">
           Show the map
         </button>

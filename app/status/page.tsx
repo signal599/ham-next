@@ -1,4 +1,4 @@
-import getStatusData from "../lib/status-report";
+import { getStatusData } from "@/app/lib/status-report";
 
 export default async function Page() {
   const { result, totals } = await getStatusData();

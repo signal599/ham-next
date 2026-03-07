@@ -4,7 +4,7 @@ import { hamAddress } from "@/src/db/schema";
 
 const db = drizzle(process.env.DATABASE_URL!);
 
-export default async function getStatusData() {
+export async function getStatusData() {
   const rows = await db
     .select({
       state: hamAddress.addressAdministrativeArea,
