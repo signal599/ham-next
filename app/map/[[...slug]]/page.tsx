@@ -1,29 +1,12 @@
-import MapForm from "@/components/map-form";
-import Map from "@/components/map";
-import { getMapData } from "@/app/lib/map-query"
+import { parseSlug } from '@/app/lib/parse-slug'
+import MapPage from '@/components/MapPage'
 
-export default async function Page({
-  params
-}: {
-  params: Promise<{ slug?: string[] }>
-}) {
-  const { slug } = await params;
+interface Props {
+  params: { slug?: string[] }
+}
 
-  let type = slug?.[0] ?? '';
-  let query = slug?.[1] ?? '';
-
-  if (!query) {
-    query = type;
-    type = 'c'
-  }
-
-  const mapData = await getMapData(type, query);
-
-  return (
-    <>
-      <h1>Amateur Radio License Map</h1>
-      <MapForm initialType={type} initialQuery={query} />
-      <Map data={mapData} />
-    </>
-  );
+export default async function MapSlugPage({ params }: Props) {
+  const { slug } = await params
+  const query = parseSlug(slug)
+  return <MapPage initialQuery={query} />
 }
