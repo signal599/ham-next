@@ -42,8 +42,15 @@ export default function MapView({
     setOpenId(null);
   }, []);
 
+  const isFirstEvent = useRef(true);
+
   const handleCameraChanged = useCallback(
     (e: MapCameraChangedEvent) => {
+      if (isFirstEvent.current) {
+        isFirstEvent.current = false;
+        return;
+      }
+
       const bounds = e.detail.bounds;
       if (!bounds) return;
 
@@ -72,7 +79,7 @@ export default function MapView({
           gestureHandling="greedy"
           disableDefaultUI={false}
         >
-          {stations.map((station) => { console.log(openId); return (
+          {stations.map((station) => (
             <StationMarker
               key={station.id}
               station={station}
@@ -80,7 +87,7 @@ export default function MapView({
               onMarkerClick={handleMarkerClick}
               onInfoWindowClose={handleInfoWindowClose}
             />
-          )})}
+          ))}
         </Map>
       </div>
     </div>
@@ -102,7 +109,9 @@ function StationMarker({
 }: StationMarkerProps) {
   const [markerEl, setMarkerEl] =
     useState<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(
+    null,
+  );
   const markerLib = useMapsLibrary("marker");
 
   const handleMarkerRef = useCallback(
