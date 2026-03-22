@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import {
   Map,
   AdvancedMarker,
   InfoWindow,
   MapCameraChangedEvent,
-  useMap,
+  useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import { Station, MapBounds } from "@/app/lib/map-types";
 
@@ -64,22 +64,45 @@ export default function MapView({
   );
 }
 
-// Separate component so each marker can have its own info window state
 function StationMarker({ station }: { station: Station }) {
   const [open, setOpen] = useState(false)
-  const [marker, setMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null)
+  const [markerEl, setMarkerEl] = useState<google.maps.marker.AdvancedMarkerElement | null>(null)
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
+  const markerLib = useMapsLibrary('marker')
+
+  const handleMarkerRef = useCallback((el: google.maps.marker.AdvancedMarkerElement | null) => {
+    markerRef.current = el
+    setMarkerEl(el) // triggers re-render so InfoWindow condition works
+  }, [])
+
+  useEffect(() => {
+    if (!markerRef.current || !markerLib) return
+
+    const pin = new markerLib.PinElement({
+      glyph: station.callsign,
+      glyphColor: 'black',
+      background: '#EA4335',
+      borderColor: '#C5221F',
+    })
+
+    markerRef.current.content = pin.element
+
+    return () => {
+      if (markerRef.current) markerRef.current.content = null
+    }
+  }, [markerEl, markerLib, station.callsign])
 
   return (
     <>
       <AdvancedMarker
-        ref={setMarker}
+        ref={handleMarkerRef}
         position={{ lat: station.lat, lng: station.lng }}
         onClick={() => setOpen(o => !o)}
       />
 
-      {open && marker && (
+      {open && markerEl && (
         <InfoWindow
-          anchor={marker}
+          anchor={markerEl}
           onClose={() => setOpen(false)}
         >
           <div className="text-sm">
