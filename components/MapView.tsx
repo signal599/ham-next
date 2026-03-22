@@ -13,7 +13,7 @@ import { Station, MapBounds } from "@/app/lib/map-types";
 interface Props {
   center: { lat: number; lng: number };
   stations: Station[];
-  activeLocationId?: string;
+  activeLocationId: string | null;
   onBoundsChange: (bounds: MapBounds) => void;
   debounceMs?: number;
 }
