@@ -21,8 +21,20 @@ export type MapBounds = {
   west: number
 }
 
+// map-types.ts additions
+export type Subsquare = {
+  code: string
+  latNorth: number
+  latCenter: number
+  latSouth: number
+  lngEast: number
+  lngCenter: number
+  lngWest: number
+}
+
 export type StationsResponse = {
   center: { lat: number; lng: number }
   stations: Station[]
   activeLocationId?: string
+  subsquares?: Subsquare[][]
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import SearchForm from './SearchForm'
 import MapView from "./MapView"
-import { SearchQuery, Station, MapBounds, StationsResponse } from '@/app/lib/map-types'
+import { SearchQuery, Station, MapBounds, StationsResponse, Subsquare } from '@/app/lib/map-types'
 import { queryToPath } from "@/app/lib/parse-slug"
 import { doQuery } from '@/app/lib/map-query'
 
@@ -18,6 +18,7 @@ export default function MapPage({ initialQuery }: Props) {
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
   const [stations, setStations] = useState<Station[]>([])
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null)
+  const [subsquares, setSubsquares] = useState<Subsquare[][] | null>(null)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -41,6 +42,7 @@ export default function MapPage({ initialQuery }: Props) {
       if (!bounds) setCenter(data.center)
       setStations(data.stations)
       setActiveLocationId(data.activeLocationId || null)
+      setSubsquares(data.subsquares || null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
     } finally {
@@ -78,6 +80,7 @@ export default function MapPage({ initialQuery }: Props) {
           center={center}
           stations={stations}
           activeLocationId={activeLocationId}
+          subsquares={subsquares}
           onBoundsChange={handleBoundsChange}
         />
       )}

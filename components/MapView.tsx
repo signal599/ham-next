@@ -8,13 +8,16 @@ import {
   MapCameraChangedEvent,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { Station, MapBounds } from "@/app/lib/map-types";
+import { Station, MapBounds, Subsquare } from "@/app/lib/map-types";
+import GridSquares from "./GridSquares";
 
 interface Props {
   center: { lat: number; lng: number };
   stations: Station[];
   activeLocationId: string | null;
+  subsquares: Subsquare[][] | null;
   onBoundsChange: (bounds: MapBounds) => void;
+  onGridClick?: (code: string) => void;
   debounceMs?: number;
 }
 
@@ -25,6 +28,8 @@ export default function MapView({
   stations,
   activeLocationId,
   onBoundsChange,
+  subsquares,
+  onGridClick,
   debounceMs = 2000,
 }: Props) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -88,6 +93,12 @@ export default function MapView({
               onInfoWindowClose={handleInfoWindowClose}
             />
           ))}
+          {subsquares && (
+            <GridSquares
+              subsquares={subsquares}
+              onGridClick={onGridClick}
+            />
+          )}
         </Map>
       </div>
     </div>
