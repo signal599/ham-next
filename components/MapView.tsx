@@ -47,71 +47,80 @@ export default function MapView({
   );
 
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden">
-      <Map
-        defaultCenter={center}
-        defaultZoom={DEFAULT_ZOOM}
-        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
-        onCameraChanged={handleCameraChanged}
-        gestureHandling="greedy"
-        disableDefaultUI={false}
-      >
-        {stations.map((station) => (
-          <StationMarker key={station.callsign} station={station} />
-        ))}
-      </Map>
+    <div className="not-prose">
+      <div className="w-full h-[600px] rounded-lg overflow-hidden">
+        <Map
+          defaultCenter={center}
+          defaultZoom={14}
+          mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
+          onCameraChanged={handleCameraChanged}
+          gestureHandling="greedy"
+          disableDefaultUI={false}
+        >
+          {stations.map((station) => (
+            <StationMarker key={station.callsign} station={station} />
+          ))}
+        </Map>
+      </div>
     </div>
   );
 }
 
 function StationMarker({ station }: { station: Station }) {
-  const [open, setOpen] = useState(false)
-  const [markerEl, setMarkerEl] = useState<google.maps.marker.AdvancedMarkerElement | null>(null)
-  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
-  const markerLib = useMapsLibrary('marker')
+  const [open, setOpen] = useState(false);
+  const [markerEl, setMarkerEl] =
+    useState<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(
+    null,
+  );
+  const markerLib = useMapsLibrary("marker");
 
-  const handleMarkerRef = useCallback((el: google.maps.marker.AdvancedMarkerElement | null) => {
-    markerRef.current = el
-    setMarkerEl(el) // triggers re-render so InfoWindow condition works
-  }, [])
+  const handleMarkerRef = useCallback(
+    (el: google.maps.marker.AdvancedMarkerElement | null) => {
+      markerRef.current = el;
+      setMarkerEl(el); // triggers re-render so InfoWindow condition works
+    },
+    [],
+  );
 
   useEffect(() => {
-    if (!markerRef.current || !markerLib) return
+    if (!markerRef.current || !markerLib) return;
 
     const pin = new markerLib.PinElement({
-      glyph: station.callsign,
-      glyphColor: 'black',
-      background: '#EA4335',
-      borderColor: '#C5221F',
-    })
+      glyphText: station.callsign,
+      glyphColor: "black",
+      background: "#EA4335",
+      borderColor: "#C5221F",
+    } as google.maps.marker.PinElementOptions);
 
-    markerRef.current.content = pin.element
+    markerRef.current.content = pin;
 
     return () => {
-      if (markerRef.current) markerRef.current.content = null
-    }
-  }, [markerEl, markerLib, station.callsign])
+      if (markerRef.current) markerRef.current.content = null;
+    };
+  }, [markerEl, markerLib, station.callsign]);
 
   return (
     <>
       <AdvancedMarker
         ref={handleMarkerRef}
         position={{ lat: station.lat, lng: station.lng }}
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
       />
 
       {open && markerEl && (
-        <InfoWindow
-          anchor={markerEl}
-          onClose={() => setOpen(false)}
-        >
+        <InfoWindow anchor={markerEl} onClose={() => setOpen(false)}>
           <div className="text-sm">
             <p className="font-semibold">{station.callsign}</p>
             {station.name && <p>{station.name}</p>}
-            {station.city && <p>{station.city}, {station.state}</p>}
+            {station.city && (
+              <p>
+                {station.city}, {station.state}
+              </p>
+            )}
           </div>
         </InfoWindow>
       )}
     </>
-  )
+  );
 }

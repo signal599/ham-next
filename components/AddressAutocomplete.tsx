@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
 
 interface Props {
@@ -10,87 +10,70 @@ interface Props {
 export default function AddressAutocomplete({ onPlaceSelect }: Props) {
   const placesLib = useMapsLibrary('places')
 
-  const [autocompleteService, setAutocompleteService] =
-    useState<google.maps.places.AutocompleteService | null>(null)
-  const [placesService, setPlacesService] =
-    useState<google.maps.places.PlacesService | null>(null)
   const [sessionToken, setSessionToken] =
     useState<google.maps.places.AutocompleteSessionToken | null>(null)
-
+  const [predictions, setPredictions] =
+    useState<google.maps.places.PlacePrediction[]>([])
   const [inputValue, setInputValue] = useState('')
-  const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const attributionRef = useRef<HTMLDivElement>(null)
-
+  // Initialize session token once places library is ready
   useEffect(() => {
-    if (!placesLib || !attributionRef.current) return
-    setAutocompleteService(new placesLib.AutocompleteService())
-    setPlacesService(new placesLib.PlacesService(attributionRef.current))
+    if (!placesLib) return
     setSessionToken(new placesLib.AutocompleteSessionToken())
   }, [placesLib])
 
   const fetchPredictions = useCallback(
-    (input: string) => {
-      if (!autocompleteService || !sessionToken || input.length < 3) {
+    async (input: string) => {
+      if (!placesLib || !sessionToken || input.length < 3) {
         setPredictions([])
         return
       }
-      autocompleteService.getPlacePredictions(
-        {
-          input,
-          sessionToken,
-          componentRestrictions: { country: 'us' },
-        },
-        (results, status) => {
-          if (status === placesLib?.PlacesServiceStatus.OK && results) {
-            setPredictions(results)
-          } else {
-            setPredictions([])
-          }
-        }
+      const request: google.maps.places.AutocompleteRequest = {
+        input,
+        sessionToken,
+        includedRegionCodes: ['us'],
+      }
+      const { suggestions } =
+        await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(request)
+      setPredictions(
+        suggestions
+          .map(s => s.placePrediction)
+          .filter((p): p is google.maps.places.PlacePrediction => p !== null)
       )
     },
-    [autocompleteService, sessionToken, placesLib]
+    [placesLib, sessionToken]
   )
 
   function handleInput(value: string) {
     setInputValue(value)
     setError(null)
-    fetchPredictions(value)
     setShowSuggestions(true)
+    fetchPredictions(value)
   }
 
-  function handleSelect(prediction: google.maps.places.AutocompletePrediction) {
-    if (!placesLib || !placesService || !sessionToken) return
+  async function handleSelect(prediction: google.maps.places.PlacePrediction) {
+    if (!placesLib) return
 
-    setInputValue(prediction.description)
+    setInputValue(prediction.text.toString())
     setPredictions([])
     setShowSuggestions(false)
 
-    placesService.getDetails(
-      {
-        placeId: prediction.place_id,
-        fields: ['geometry'],
-        sessionToken,
-      },
-      (place, status) => {
-        if (
-          status === placesLib.PlacesServiceStatus.OK &&
-          place?.geometry?.location
-        ) {
-          onPlaceSelect(
-            place.geometry.location.lat(),
-            place.geometry.location.lng()
-          )
-          // Refresh session token using placesLib, not global google namespace
-          setSessionToken(new placesLib.AutocompleteSessionToken())
-        } else {
-          setError('Could not get location for that address.')
-        }
+    try {
+      const place = prediction.toPlace()
+      await place.fetchFields({ fields: ['location'] })
+
+      if (place.location) {
+        onPlaceSelect(place.location.lat(), place.location.lng())
+        // Refresh session token after completed selection
+        setSessionToken(new placesLib.AutocompleteSessionToken())
+      } else {
+        setError('Could not get location for that address.')
       }
-    )
+    } catch {
+      setError('Address lookup failed. Please try again.')
+    }
   }
 
   return (
@@ -108,21 +91,19 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
 
       {showSuggestions && predictions.length > 0 && (
         <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto">
-          {predictions.map(prediction => (
+          {predictions.map((prediction, i) => (
             <li
-              key={prediction.place_id}
+              key={i}
               onMouseDown={() => handleSelect(prediction)}
               className="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer"
             >
-              {prediction.description}
+              {prediction.text.toString()}
             </li>
           ))}
         </ul>
       )}
 
       {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
-
-      <div ref={attributionRef} className="hidden" />
     </div>
   )
 }

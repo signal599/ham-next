@@ -14,6 +14,10 @@ export async function doQuery(q: SearchQuery): Promise<string> {
       {
         callsign: 'KT1F',
         lat: 42.803135, lng: -71.741880
+      },
+      {
+        callsign: 'N1EVQ',
+        lat: 42.798834, lng: -71.747694
       }
     ]
   }
