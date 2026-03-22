@@ -17,6 +17,7 @@ export default function MapPage({ initialQuery }: Props) {
   const [query, setQuery]   = useState<SearchQuery | null>(initialQuery)
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
   const [stations, setStations] = useState<Station[]>([])
+  const [activeLocationId, setActiveLocationId] = useState<string | null>(null)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -39,6 +40,7 @@ export default function MapPage({ initialQuery }: Props) {
       // re-fetches — we don't want the map to jump when the user pans
       if (!bounds) setCenter(data.center)
       setStations(data.stations)
+      setActiveLocationId(data.activeLocationId || null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
     } finally {
@@ -75,6 +77,7 @@ export default function MapPage({ initialQuery }: Props) {
         <MapView
           center={center}
           stations={stations}
+          activeLocationId={activeLocationId}
           onBoundsChange={handleBoundsChange}
         />
       )}

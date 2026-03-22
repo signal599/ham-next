@@ -12,14 +12,17 @@ export async function doQuery(q: SearchQuery): Promise<string> {
     center: {lat, lng},
     stations: [
       {
+        id: '1',
         callsign: 'KT1F',
         lat: 42.803135, lng: -71.741880
       },
       {
+        id: '2',
         callsign: 'N1EVQ',
         lat: 42.798834, lng: -71.747694
       }
-    ]
+    ],
+    activeLocationId: '1'
   }
 
   return JSON.stringify(data);

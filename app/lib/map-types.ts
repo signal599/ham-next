@@ -5,6 +5,7 @@ export type SearchQuery =
   | { type: 'point'; lat: number; lng: number }
 
 export type Station = {
+  id: string
   callsign: string
   lat: number
   lng: number
@@ -23,4 +24,5 @@ export type MapBounds = {
 export type StationsResponse = {
   center: { lat: number; lng: number }
   stations: Station[]
+  activeLocationId?: string
 }
