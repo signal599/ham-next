@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Subsquare } from "@/app/lib/map-types";
+import { Subsquare } from "@/lib/map-types";
 
 interface Props {
   subsquares: Subsquare[][];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SearchQuery } from "@/app/lib/map-types";
+import { SearchQuery } from "@/lib/map-types";
 import AddressAutocomplete from "./AddressAutocomplete";
 
 type InputType = "callsign" | "gridsquare" | "zipcode" | "address";

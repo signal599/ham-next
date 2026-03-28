@@ -8,7 +8,7 @@ import {
   MapCameraChangedEvent,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { Station, MapBounds, Subsquare } from "@/app/lib/map-types";
+import { Station, MapBounds, Subsquare } from "@/lib/map-types";
 import GridSquares from "./GridSquares";
 
 interface Props {

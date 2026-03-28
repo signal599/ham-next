@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import SearchForm from './SearchForm'
 import MapView from "./MapView"
-import { SearchQuery, Station, MapBounds, StationsResponse, Subsquare } from '@/app/lib/map-types'
-import { queryToPath } from "@/app/lib/parse-slug"
-import { doQuery } from '@/app/lib/map-query'
+import { SearchQuery, Station, MapBounds, StationsResponse, Subsquare } from '@/lib/map-types'
+import { queryToPath } from "@/lib/parse-slug"
+import { doQuery } from '@/lib/map-query'
 
 interface Props {
   initialQuery: SearchQuery | null
@@ -32,11 +32,9 @@ export default function MapPage({ initialQuery }: Props) {
     setError(null)
     try {
       const params = buildApiParams(q, bounds)
-      // const res = await fetch(`/api/stations?${params}`)
-      // if (!res.ok) throw new Error(`Server error: ${res.status}`)
-     const res = await doQuery(q);
-//      const data: StationsResponse = await res.json()
-      const data: StationsResponse = JSON.parse(res);
+      const res = await fetch(`/api/stations?${params}`)
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+      const data: StationsResponse = await res.json()
       // Only update center on the initial query fetch, not on bounds-driven
       // re-fetches — we don't want the map to jump when the user pans
       if (!bounds) setCenter(data.center)

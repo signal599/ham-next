@@ -2,7 +2,7 @@
 "use client";
 
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
-import { Subsquare } from "@/app/lib/map-types";
+import { Subsquare } from "@/lib/map-types";
 import GridSquareOverlay from "./GridSquareOverlay";
 
 interface Props {

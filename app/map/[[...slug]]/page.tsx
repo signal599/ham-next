@@ -1,4 +1,4 @@
-import { parseSlug } from '@/app/lib/parse-slug'
+import { parseSlug } from '@/lib/parse-slug'
 import MapPage from '@/components/MapPage'
 
 interface Props {

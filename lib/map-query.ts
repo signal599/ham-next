@@ -1,6 +1,6 @@
-import { SearchQuery } from "./map-types";
+import { SearchQuery, StationsResponse } from "./map-types";
 
-export async function doQuery(q: SearchQuery): Promise<string> {
+export async function doQuery(q: SearchQuery): Promise<StationsResponse> {
   let lat = 0,
     lng = 0;
 
@@ -1141,5 +1141,5 @@ export async function doQuery(q: SearchQuery): Promise<string> {
     ],
   };
 
-  return JSON.stringify(data);
+  return data;
 }
