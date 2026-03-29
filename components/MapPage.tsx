@@ -4,9 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import SearchForm from './SearchForm'
 import MapView from "./MapView"
-import { SearchQuery, Station, ds, StationsResponse, Subsquare } from '@/lib/map-types'
+import { SearchQuery, Station, StationsResponse, Subsquare, MapBounds } from '@/lib/map-types'
 import { queryToPath } from "@/lib/parse-slug"
-import { doQuery } from '@/lib/map-query'
 
 interface Props {
   initialQuery: SearchQuery | null
@@ -27,12 +26,12 @@ export default function MapPage({ initialQuery }: Props) {
     fetchStations(query)
   }, [query])
 
-  async function fetchStations(q: SearchQuery, bounds?: ds) {
+  async function fetchStations(q: SearchQuery, bounds?: MapBounds) {
     setLoading(true)
     setError(null)
     try {
       const params = buildApiParams(q, bounds)
-      const res = await fetch(`/api/stations?${params}`)
+      const res = await fetch(`/api/map-query?${params}`)
       if (!res.ok) throw new Error(`Server error: ${res.status}`)
       const data: StationsResponse = await res.json()
       // Only update center on the initial query fetch, not on bounds-driven
