@@ -18,7 +18,6 @@ export default function MapPage({ initialQuery }: Props) {
   const [locations, setLocations] = useState<Location[]>([])
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null)
   const [gridSquares, setGridSquares] = useState<GridSquare[][] | null>(null)
-  const [locationsResponse, setlocationsResponse] = useState<LocationsResponse | null>(null)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -30,6 +29,7 @@ export default function MapPage({ initialQuery }: Props) {
   async function fetchStations(q: SearchQuery, center?: LatLng) {
     setLoading(true)
     setError(null)
+
     try {
       const params = buildApiParams(q, center)
       const res = await fetch(`/api/map-query?${params}`)
@@ -39,20 +39,9 @@ export default function MapPage({ initialQuery }: Props) {
       // re-fetches — we don't want the map to jump when the user pans
       if (!center) setCenter(data.center)
 
-      // const stations = data.locations.map(location => {
-      //   return {
-      //     id: location.id,
-      //     lat: location.lat,
-      //     lng: location.lng,
-      //     callsign: location.addresses[0].stations[0].callsign,
-      //   };
-      // });
-
-      // setStations(stations)
-
       setLocations(data.locations);
-      setActiveLocationId(data.activeLocationId || null)
-      setGridSquares(data.gridsquares || null)
+      setActiveLocationId(data.activeLocationId)
+      setGridSquares(data.gridsquares)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
     } finally {
@@ -67,6 +56,7 @@ export default function MapPage({ initialQuery }: Props) {
 
   const handleCenterChange = useCallback((center: LatLng) => {
     if (!query) return
+      // The map has moved. The query value is ignored.
       fetchStations(query, center);
   }, [query])
 
@@ -98,12 +88,14 @@ function buildApiParams(query: SearchQuery, center?: LatLng): URLSearchParams {
   const p = new URLSearchParams()
 
   if (center) {
+    // The map has been moved.
     p.set('type', 'point')
     p.set('lat', center.lat.toString())
     p.set('lng', center.lng.toString())
     return p
   }
 
+  // Initial query.
   switch (query.type) {
     case 'callsign':   p.set('type', 'callsign');   p.set('value', query.value); break
     case 'gridsquare': p.set('type', 'gridsquare'); p.set('value', query.value); break
