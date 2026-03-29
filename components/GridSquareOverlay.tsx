@@ -2,21 +2,21 @@
 
 import { useEffect } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Subsquare } from "@/lib/map-types";
+import { GridSquare } from "@/lib/map-types";
 
 interface Props {
-  subsquares: Subsquare[][];
+  gridSquares: GridSquare[][];
   onGridClick?: (code: string) => void;
 }
 
-export default function GridSquareOverlay({ subsquares, onGridClick }: Props) {
+export default function GridSquareOverlay({ gridSquares, onGridClick }: Props) {
   const map = useMap();
   const mapsLib = useMapsLibrary("maps");
 
   useEffect(() => {
     if (!map || !mapsLib) return;
 
-    const flat = subsquares.flat();
+    const flat = gridSquares.flat();
 
     const rectangles = flat.map((sq) => {
       const rect = new mapsLib.Rectangle({
@@ -39,7 +39,7 @@ export default function GridSquareOverlay({ subsquares, onGridClick }: Props) {
     return () => {
       rectangles.forEach((r) => r.setMap(null));
     };
-  }, [map, mapsLib, subsquares]);
+  }, [map, mapsLib, gridSquares]);
 
   return null;
 }

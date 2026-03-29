@@ -8,15 +8,15 @@ import {
   MapCameraChangedEvent,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { Station, MapBounds, Subsquare } from "@/lib/map-types";
+import { Location, GridSquare, LatLng } from "@/lib/map-types";
 import GridSquares from "./GridSquares";
 
 interface Props {
   center: { lat: number; lng: number };
-  stations: Station[];
+  locations: Location[];
   activeLocationId: string | null;
-  subsquares: Subsquare[][] | null;
-  onBoundsChange: (bounds: MapBounds) => void;
+  gridSquares: GridSquare[][] | null;
+  onCenterChange: (center: LatLng) => void;
   onGridClick?: (code: string) => void;
   debounceMs?: number;
 }
@@ -25,10 +25,10 @@ const DEFAULT_ZOOM = 14;
 
 export default function MapView({
   center,
-  stations,
+  locations,
   activeLocationId,
-  onBoundsChange,
-  subsquares,
+  onCenterChange,
+  gridSquares,
   onGridClick,
   debounceMs = 2000,
 }: Props) {
@@ -62,15 +62,10 @@ export default function MapView({
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
       debounceTimer.current = setTimeout(() => {
-        onBoundsChange({
-          north: bounds.north,
-          south: bounds.south,
-          east: bounds.east,
-          west: bounds.west,
-        });
+        onCenterChange(e.detail.center as LatLng);
       }, debounceMs);
     },
-    [onBoundsChange, debounceMs],
+    [onCenterChange, debounceMs],
   );
 
   return (
@@ -84,18 +79,18 @@ export default function MapView({
           gestureHandling="greedy"
           disableDefaultUI={false}
         >
-          {stations.map((station) => (
-            <StationMarker
-              key={station.id}
-              station={station}
-              isOpen={openId === station.id}
+          {locations.map((location) => (
+            <LocationMarker
+              key={location.id}
+              location={location}
+              isOpen={openId === location.id}
               onMarkerClick={handleMarkerClick}
               onInfoWindowClose={handleInfoWindowClose}
             />
           ))}
-          {subsquares && (
+          {gridSquares && (
             <GridSquares
-              subsquares={subsquares}
+              gridSquares={gridSquares}
               onGridClick={onGridClick}
             />
           )}
@@ -105,19 +100,19 @@ export default function MapView({
   );
 }
 
-interface StationMarkerProps {
-  station: Station;
+interface LocationMarkerProps {
+  location: Location;
   isOpen: boolean;
   onMarkerClick: (id: string) => void;
   onInfoWindowClose: () => void;
 }
 
-function StationMarker({
-  station,
+function LocationMarker({
+  location,
   isOpen,
   onMarkerClick,
   onInfoWindowClose,
-}: StationMarkerProps) {
+}: LocationMarkerProps) {
   const [markerEl, setMarkerEl] =
     useState<google.maps.marker.AdvancedMarkerElement | null>(null);
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(
@@ -137,7 +132,7 @@ function StationMarker({
     if (!markerRef.current || !markerLib) return;
 
     const pin = new markerLib.PinElement({
-      glyphText: station.callsign,
+      glyphText: location.addresses[0].stations[0].callsign,
       glyphColor: "black",
       background: "#EA4335",
       borderColor: "#C5221F",
@@ -148,30 +143,24 @@ function StationMarker({
     return () => {
       if (markerRef.current) markerRef.current.content = null;
     };
-  }, [markerEl, markerLib, station.callsign]);
+  }, [markerEl, markerLib, location]);
 
   const handleClick = useCallback(() => {
-    onMarkerClick(station.id);
-  }, [onMarkerClick, station.id]);
+    onMarkerClick(location.id);
+  }, [onMarkerClick, location.id]);
 
   return (
     <>
       <AdvancedMarker
         ref={handleMarkerRef}
-        position={{ lat: station.lat, lng: station.lng }}
+        position={{ lat: location.lat, lng: location.lng }}
         onClick={handleClick}
       />
 
       {isOpen && markerEl && (
         <InfoWindow anchor={markerEl} onClose={onInfoWindowClose}>
           <div className="text-sm">
-            <p className="font-semibold">{station.callsign}</p>
-            {station.name && <p>{station.name}</p>}
-            {station.city && (
-              <p>
-                {station.city}, {station.state}
-              </p>
-            )}
+            <p className="font-semibold">{location.addresses[0].stations[0].callsign}</p>
           </div>
         </InfoWindow>
       )}

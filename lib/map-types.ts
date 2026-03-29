@@ -4,25 +4,12 @@ export type SearchQuery =
   | { type: 'zipcode'; value: string }
   | { type: 'point'; lat: number; lng: number }
 
-export type Station = {
-  id: string
-  callsign: string
+export type LatLng = {
   lat: number
   lng: number
-  name?: string
-  city?: string
-  state?: string
 }
 
-export type MapBounds = {
-  north: number
-  south: number
-  east: number
-  west: number
-}
-
-// map-types.ts additions
-export type Subsquare = {
+export type GridSquare = {
   code: string
   latNorth: number
   latCenter: number
@@ -32,14 +19,7 @@ export type Subsquare = {
   lngWest: number
 }
 
-export type StationsResponse = {
-  center: { lat: number; lng: number }
-  stations: Station[]
-  activeLocationId?: string
-  subsquares?: Subsquare[][]
-}
-
-export type HStation = {
+export type Station = {
   callsign: string
   name: string
   operatorClass: string
@@ -51,7 +31,7 @@ export type Address = {
   city: string
   state: string
   zip: string
-  stations: HStation[]
+  stations: Station[]
 }
 
 export type Location = {
@@ -65,7 +45,7 @@ export type LocationsResponse = {
   center: { lat: number; lng: number }
   locations: Location[]
   activeLocationId: string | null
-  gridsquares: Subsquare[][]
+  gridsquares: GridSquare[][]
 }
 
 export type HamInfoQuery =

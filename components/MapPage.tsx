@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import SearchForm from './SearchForm'
 import MapView from "./MapView"
-import { SearchQuery, Station, StationsResponse, Subsquare, MapBounds } from '@/lib/map-types'
+import { SearchQuery, GridSquare, Location, LocationsResponse, LatLng } from '@/lib/map-types'
 import { queryToPath } from "@/lib/parse-slug"
 
 interface Props {
@@ -15,9 +15,10 @@ export default function MapPage({ initialQuery }: Props) {
   const router = useRouter()
   const [query, setQuery]   = useState<SearchQuery | null>(initialQuery)
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
-  const [stations, setStations] = useState<Station[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
   const [activeLocationId, setActiveLocationId] = useState<string | null>(null)
-  const [subsquares, setSubsquares] = useState<Subsquare[][] | null>(null)
+  const [gridSquares, setGridSquares] = useState<GridSquare[][] | null>(null)
+  const [locationsResponse, setlocationsResponse] = useState<LocationsResponse | null>(null)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -26,20 +27,32 @@ export default function MapPage({ initialQuery }: Props) {
     fetchStations(query)
   }, [query])
 
-  async function fetchStations(q: SearchQuery, bounds?: MapBounds) {
+  async function fetchStations(q: SearchQuery, center?: LatLng) {
     setLoading(true)
     setError(null)
     try {
-      const params = buildApiParams(q, bounds)
+      const params = buildApiParams(q, center)
       const res = await fetch(`/api/map-query?${params}`)
       if (!res.ok) throw new Error(`Server error: ${res.status}`)
-      const data: StationsResponse = await res.json()
+      const data: LocationsResponse = await res.json()
       // Only update center on the initial query fetch, not on bounds-driven
       // re-fetches — we don't want the map to jump when the user pans
-      if (!bounds) setCenter(data.center)
-      setStations(data.stations)
+      if (!center) setCenter(data.center)
+
+      // const stations = data.locations.map(location => {
+      //   return {
+      //     id: location.id,
+      //     lat: location.lat,
+      //     lng: location.lng,
+      //     callsign: location.addresses[0].stations[0].callsign,
+      //   };
+      // });
+
+      // setStations(stations)
+
+      setLocations(data.locations);
       setActiveLocationId(data.activeLocationId || null)
-      setSubsquares(data.subsquares || null)
+      setGridSquares(data.gridsquares || null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
     } finally {
@@ -52,9 +65,9 @@ export default function MapPage({ initialQuery }: Props) {
     router.push(queryToPath(newQuery))
   }
 
-  const handleBoundsChange = useCallback((bounds: ds) => {
+  const handleCenterChange = useCallback((center: LatLng) => {
     if (!query) return
-    fetchStations(query, bounds)
+      fetchStations(query, center);
   }, [query])
 
   return (
@@ -64,10 +77,6 @@ export default function MapPage({ initialQuery }: Props) {
         onSearch={handleSearch}
       />
 
-      {loading && (
-        <p className="text-sm text-gray-500">Loading stations...</p>
-      )}
-
       {error && (
         <p className="text-sm text-red-600">{error}</p>
       )}
@@ -75,18 +84,25 @@ export default function MapPage({ initialQuery }: Props) {
       {query && center && (
         <MapView
           center={center}
-          stations={stations}
+          locations={locations}
           activeLocationId={activeLocationId}
-          subsquares={subsquares}
-          onBoundsChange={handleBoundsChange}
+          gridSquares={gridSquares}
+          onCenterChange={handleCenterChange}
         />
       )}
     </div>
   )
 }
 
-function buildApiParams(query: SearchQuery, bounds?: ds): URLSearchParams {
+function buildApiParams(query: SearchQuery, center?: LatLng): URLSearchParams {
   const p = new URLSearchParams()
+
+  if (center) {
+    p.set('type', 'point')
+    p.set('lat', center.lat.toString())
+    p.set('lng', center.lng.toString())
+    return p
+  }
 
   switch (query.type) {
     case 'callsign':   p.set('type', 'callsign');   p.set('value', query.value); break
@@ -95,13 +111,6 @@ function buildApiParams(query: SearchQuery, bounds?: ds): URLSearchParams {
     case 'point':      p.set('type', 'point')
                        p.set('lat', String(query.lat))
                        p.set('lng', String(query.lng));                          break
-  }
-
-  if (bounds) {
-    p.set('north', String(bounds.north))
-    p.set('south', String(bounds.south))
-    p.set('east',  String(bounds.east))
-    p.set('west',  String(bounds.west))
   }
 
   return p

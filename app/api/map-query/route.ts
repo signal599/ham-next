@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { doQuery as doQueryTmp } from '@/lib/map-query-tmp'
 import { doQuery } from '@/lib/map-query'
 import { SearchQuery } from '@/lib/map-types'
 
@@ -24,9 +23,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const data = await doQueryTmp(query)
-    const data2 = await doQuery(query);
-
+    const data = await doQuery(query);
     return NextResponse.json(data)
   } catch (e) {
     return NextResponse.json({ error: 'Query failed' }, { status: 500 })

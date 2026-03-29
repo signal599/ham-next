@@ -2,20 +2,20 @@
 "use client";
 
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
-import { Subsquare } from "@/lib/map-types";
+import { GridSquare } from "@/lib/map-types";
 import GridSquareOverlay from "./GridSquareOverlay";
 
 interface Props {
-  subsquares: Subsquare[][];
+  gridSquares: GridSquare[][];
   onGridClick?: (code: string) => void;
 }
 
-export default function GridSquares({ subsquares, onGridClick }: Props) {
-  const flat = subsquares.flat();
+export default function GridSquares({ gridSquares, onGridClick }: Props) {
+  const flat = gridSquares.flat();
 
   return (
     <>
-      <GridSquareOverlay subsquares={subsquares} />
+      <GridSquareOverlay gridSquares={gridSquares} />
       {flat.map((sq) => (
         <AdvancedMarker
           key={sq.code}
