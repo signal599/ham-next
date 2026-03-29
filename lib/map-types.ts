@@ -38,3 +38,38 @@ export type StationsResponse = {
   activeLocationId?: string
   subsquares?: Subsquare[][]
 }
+
+export type HStation = {
+  callsign: string
+  name: string
+  operatorClass: string
+}
+
+export type Address = {
+  address1: string
+  address2: string
+  city: string
+  state: string
+  zip: string
+  stations: HStation[]
+}
+
+export type Location = {
+  id: string
+  lat: number
+  lng: number
+  addresses: Address[]
+}
+
+export type LocationsResponse = {
+  center: { lat: number; lng: number }
+  locations: Location[]
+  activeLocationId: string | null
+  gridsquares: Subsquare[][]
+}
+
+export type HamInfoQuery =
+  | { type: 'c'; value: string }
+  | { type: 'g'; value: string }
+  | { type: 'z'; value: string }
+  | { type: 'latlng'; value: string}

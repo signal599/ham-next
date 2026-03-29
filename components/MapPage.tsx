@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import SearchForm from './SearchForm'
 import MapView from "./MapView"
-import { SearchQuery, Station, MapBounds, StationsResponse, Subsquare } from '@/lib/map-types'
+import { SearchQuery, Station, ds, StationsResponse, Subsquare } from '@/lib/map-types'
 import { queryToPath } from "@/lib/parse-slug"
 import { doQuery } from '@/lib/map-query'
 
@@ -27,7 +27,7 @@ export default function MapPage({ initialQuery }: Props) {
     fetchStations(query)
   }, [query])
 
-  async function fetchStations(q: SearchQuery, bounds?: MapBounds) {
+  async function fetchStations(q: SearchQuery, bounds?: ds) {
     setLoading(true)
     setError(null)
     try {
@@ -53,7 +53,7 @@ export default function MapPage({ initialQuery }: Props) {
     router.push(queryToPath(newQuery))
   }
 
-  const handleBoundsChange = useCallback((bounds: MapBounds) => {
+  const handleBoundsChange = useCallback((bounds: ds) => {
     if (!query) return
     fetchStations(query, bounds)
   }, [query])
@@ -86,7 +86,7 @@ export default function MapPage({ initialQuery }: Props) {
   )
 }
 
-function buildApiParams(query: SearchQuery, bounds?: MapBounds): URLSearchParams {
+function buildApiParams(query: SearchQuery, bounds?: ds): URLSearchParams {
   const p = new URLSearchParams()
 
   switch (query.type) {
