@@ -34,8 +34,8 @@ export default function MapView({
   onGridClick,
   debounceMs = 2000,
 }: Props) {
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleMarkerClick = useCallback(
     (id: string) => {
       onOpenIdChange(openId === id ? null : id);
@@ -44,6 +44,7 @@ export default function MapView({
   );
 
   const isFirstEvent = useRef(true);
+  const queryAt = useRef<number>(0);
 
   const handleCameraChanged = useCallback(
     (e: MapCameraChangedEvent) => {
@@ -58,6 +59,7 @@ export default function MapView({
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
       debounceTimer.current = setTimeout(() => {
+        queryAt.current = Date.now();
         onCenterChange(e.detail.center as LatLng);
       }, debounceMs);
     },
@@ -65,7 +67,12 @@ export default function MapView({
   );
 
   const handleInfoWindowClose = useCallback(() => {
-    onOpenIdChange(null); // genuine close: user clicked the X button
+    const elapsed = Date.now() - queryAt.current;
+    console.log(elapsed);
+    if (elapsed < 1500) {
+      return;
+    }
+    onOpenIdChange(null);
   }, [onOpenIdChange]);
 
   return (
