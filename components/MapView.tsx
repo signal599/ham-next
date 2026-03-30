@@ -7,6 +7,7 @@ import {
   InfoWindow,
   MapCameraChangedEvent,
   useMapsLibrary,
+  useMap,
 } from "@vis.gl/react-google-maps";
 import { Location, GridSquare, LatLng } from "@/lib/map-types";
 import GridSquares from "./GridSquares";
@@ -34,7 +35,6 @@ export default function MapView({
   onGridClick,
   debounceMs = 2000,
 }: Props) {
-
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleMarkerClick = useCallback(
     (id: string) => {
@@ -64,7 +64,28 @@ export default function MapView({
     [onCenterChange, debounceMs],
   );
 
+  const map = useMap();
+
   const handleInfoWindowClose = useCallback(() => {
+    // Only accept close if the marker has scrolled off screen.
+    // Spurious SDK closes while marker is in bounds are ignored here —
+    // genuine user X clicks are handled by onCloseClick instead.
+    if (!map || !openId) return;
+
+    const location = locations.find((l) => l.id === openId);
+    if (!location) return;
+
+    const bounds = map.getBounds();
+    if (!bounds) return;
+
+    const markerPos = new google.maps.LatLng(location.lat, location.lng);
+    if (!bounds.contains(markerPos)) {
+      onOpenIdChange(null);
+    }
+  }, [map, openId, locations, onOpenIdChange]);
+
+  const handleInfoWindowCloseClick = useCallback(() => {
+    // User explicitly clicked the X button.
     onOpenIdChange(null);
   }, [onOpenIdChange]);
 
@@ -86,6 +107,7 @@ export default function MapView({
               isOpen={openId === location.id}
               onMarkerClick={handleMarkerClick}
               onInfoWindowClose={handleInfoWindowClose}
+              onInfoWindowCloseClick={handleInfoWindowCloseClick}
             />
           ))}
           {gridSquares && (
@@ -102,6 +124,7 @@ interface LocationMarkerProps {
   isOpen: boolean;
   onMarkerClick: (id: string) => void;
   onInfoWindowClose: () => void;
+  onInfoWindowCloseClick: () => void;
 }
 
 function LocationMarker({
@@ -109,6 +132,7 @@ function LocationMarker({
   isOpen,
   onMarkerClick,
   onInfoWindowClose,
+  onInfoWindowCloseClick,
 }: LocationMarkerProps) {
   const [markerEl, setMarkerEl] =
     useState<google.maps.marker.AdvancedMarkerElement | null>(null);
@@ -155,7 +179,11 @@ function LocationMarker({
       />
 
       {isOpen && markerEl && (
-        <InfoWindow anchor={markerEl} onCloseClick={onInfoWindowClose}>
+        <InfoWindow
+          anchor={markerEl}
+          onClose={onInfoWindowClose}
+          onCloseClick={onInfoWindowCloseClick}
+        >
           <div className="text-sm">
             <p className="font-semibold">
               {location.addresses[0].stations[0].callsign}
