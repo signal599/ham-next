@@ -44,7 +44,6 @@ export default function MapView({
   );
 
   const isFirstEvent = useRef(true);
-  const queryAt = useRef<number>(0);
 
   const handleCameraChanged = useCallback(
     (e: MapCameraChangedEvent) => {
@@ -59,7 +58,6 @@ export default function MapView({
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
       debounceTimer.current = setTimeout(() => {
-        queryAt.current = Date.now();
         onCenterChange(e.detail.center as LatLng);
       }, debounceMs);
     },
@@ -67,11 +65,6 @@ export default function MapView({
   );
 
   const handleInfoWindowClose = useCallback(() => {
-    const elapsed = Date.now() - queryAt.current;
-    console.log(elapsed);
-    if (elapsed < 1500) {
-      return;
-    }
     onOpenIdChange(null);
   }, [onOpenIdChange]);
 
@@ -162,7 +155,7 @@ function LocationMarker({
       />
 
       {isOpen && markerEl && (
-        <InfoWindow anchor={markerEl} onClose={onInfoWindowClose}>
+        <InfoWindow anchor={markerEl} onCloseClick={onInfoWindowClose}>
           <div className="text-sm">
             <p className="font-semibold">
               {location.addresses[0].stations[0].callsign}
