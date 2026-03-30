@@ -14,7 +14,8 @@ import GridSquares from "./GridSquares";
 interface Props {
   center: { lat: number; lng: number };
   locations: Location[];
-  activeLocationId: string | null;
+  openId: string | null;
+  onOpenIdChange: (id: string | null) => void;
   gridSquares: GridSquare[][] | null;
   onCenterChange: (center: LatLng) => void;
   onGridClick?: (code: string) => void;
@@ -26,26 +27,21 @@ const DEFAULT_ZOOM = 14;
 export default function MapView({
   center,
   locations,
-  activeLocationId,
+  openId,
+  onOpenIdChange,
   onCenterChange,
   gridSquares,
   onGridClick,
   debounceMs = 2000,
 }: Props) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [openId, setOpenId] = useState<string | null>(activeLocationId ?? null);
 
-  useEffect(() => {
-    setOpenId(activeLocationId ?? null);
-  }, [activeLocationId]);
-
-  const handleMarkerClick = useCallback((id: string) => {
-    setOpenId((prev) => (prev === id ? null : id));
-  }, []);
-
-  const handleInfoWindowClose = useCallback(() => {
-    setOpenId(null);
-  }, []);
+  const handleMarkerClick = useCallback(
+    (id: string) => {
+      onOpenIdChange(openId === id ? null : id);
+    },
+    [onOpenIdChange, openId],
+  );
 
   const isFirstEvent = useRef(true);
 
@@ -68,6 +64,10 @@ export default function MapView({
     [onCenterChange, debounceMs],
   );
 
+  const handleInfoWindowClose = useCallback(() => {
+    onOpenIdChange(null); // genuine close: user clicked the X button
+  }, [onOpenIdChange]);
+
   return (
     <div className="not-prose">
       <div className="w-full h-[600px] rounded-lg overflow-hidden">
@@ -89,10 +89,7 @@ export default function MapView({
             />
           ))}
           {gridSquares && (
-            <GridSquares
-              gridSquares={gridSquares}
-              onGridClick={onGridClick}
-            />
+            <GridSquares gridSquares={gridSquares} onGridClick={onGridClick} />
           )}
         </Map>
       </div>
@@ -160,7 +157,9 @@ function LocationMarker({
       {isOpen && markerEl && (
         <InfoWindow anchor={markerEl} onClose={onInfoWindowClose}>
           <div className="text-sm">
-            <p className="font-semibold">{location.addresses[0].stations[0].callsign}</p>
+            <p className="font-semibold">
+              {location.addresses[0].stations[0].callsign}
+            </p>
           </div>
         </InfoWindow>
       )}

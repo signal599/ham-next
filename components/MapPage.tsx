@@ -16,8 +16,8 @@ export default function MapPage({ initialQuery }: Props) {
   const [query, setQuery]   = useState<SearchQuery | null>(initialQuery)
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
   const [locations, setLocations] = useState<Location[]>([])
-  const [activeLocationId, setActiveLocationId] = useState<string | null>(null)
   const [gridSquares, setGridSquares] = useState<GridSquare[][] | null>(null)
+  const [openId, setOpenId] = useState<string | null>(null)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -37,10 +37,12 @@ export default function MapPage({ initialQuery }: Props) {
       const data: LocationsResponse = await res.json()
       // Only update center on the initial query fetch, not on bounds-driven
       // re-fetches — we don't want the map to jump when the user pans
-      if (!center) setCenter(data.center)
+      if (!center) {
+        setCenter(data.center)
+        setOpenId(data.activeLocationId)
+      }
 
       setLocations(data.locations);
-      setActiveLocationId(data.activeLocationId)
       setGridSquares(data.gridsquares)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
@@ -75,7 +77,8 @@ export default function MapPage({ initialQuery }: Props) {
         <MapView
           center={center}
           locations={locations}
-          activeLocationId={activeLocationId}
+          openId={openId}
+          onOpenIdChange={setOpenId}
           gridSquares={gridSquares}
           onCenterChange={handleCenterChange}
         />
