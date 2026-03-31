@@ -55,3 +55,8 @@ export type HamInfoQuery =
   | { type: 'g'; value: string }
   | { type: 'z'; value: string }
   | { type: 'latlng'; value: string}
+
+export type HamInfoResponse = {
+  data?: LocationsResponse
+  error?: string
+}

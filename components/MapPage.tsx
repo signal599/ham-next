@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import SearchForm from './SearchForm'
 import MapView from "./MapView"
-import { SearchQuery, GridSquare, Location, LocationsResponse, LatLng } from '@/lib/map-types'
+import { SearchQuery, GridSquare, Location, LocationsResponse, LatLng, HamInfoResponse } from '@/lib/map-types'
 import { queryToPath } from "@/lib/parse-slug"
 
 interface Props {
@@ -34,7 +34,14 @@ export default function MapPage({ initialQuery }: Props) {
       const params = buildApiParams(q, center)
       const res = await fetch(`/api/map-query?${params}`)
       if (!res.ok) throw new Error(`Server error: ${res.status}`)
-      const data: LocationsResponse = await res.json()
+      const infoResponse: HamInfoResponse = await res.json()
+
+      if (infoResponse.error) {
+        throw new Error(infoResponse.error)
+      }
+
+      const data: LocationsResponse = infoResponse.data!;
+
       // Only update center on the initial query fetch, not on bounds-driven
       // re-fetches — we don't want the map to jump when the user pans
       if (!center) {

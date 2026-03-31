@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const data = await doQuery(query);
-    return NextResponse.json(data)
+    const response = await doQuery(query);
+    return NextResponse.json(response)
   } catch (e) {
     return NextResponse.json({ error: 'Query failed' }, { status: 500 })
   }
