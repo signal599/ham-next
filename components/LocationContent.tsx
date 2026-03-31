@@ -6,7 +6,7 @@ interface Props {
 
 export default function LocationContent({ location }: Props) {
   return (
-    <div className="text-sm max-w-64 pb-2 pr-2">
+    <div className="text-sm max-w-64 pb-2 pr-3">
       {location.addresses.map((address, i) => (
         <div key={address.id}>
           {i > 0 && <hr className="my-2 border-gray-200" />}
