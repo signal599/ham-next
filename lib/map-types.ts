@@ -20,12 +20,14 @@ export type GridSquare = {
 }
 
 export type Station = {
+  id: string
   callsign: string
   name: string
   operatorClass: string
 }
 
 export type Address = {
+  id: string
   address1: string
   address2: string
   city: string

@@ -11,6 +11,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { Location, GridSquare, LatLng } from "@/lib/map-types";
 import GridSquares from "./GridSquares";
+import LocationContent from "./LocationContent";
 
 interface Props {
   center: { lat: number; lng: number };
@@ -184,11 +185,7 @@ function LocationMarker({
           onClose={onInfoWindowClose}
           onCloseClick={onInfoWindowCloseClick}
         >
-          <div className="text-sm">
-            <p className="font-semibold">
-              {location.addresses[0].stations[0].callsign}
-            </p>
-          </div>
+          <LocationContent location={location} />
         </InfoWindow>
       )}
     </>
