@@ -157,7 +157,7 @@ function LocationMarker({
       return acc + address.stations.length;
     }, 0);
 
-    const plus = stationCount ? " +" : "";
+    const plus = stationCount > 1 ? " +" : "";
 
     const pin = new markerLib.PinElement({
       glyphText: `${location.addresses[0].stations[0].callsign}${plus}`,
