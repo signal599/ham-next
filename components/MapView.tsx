@@ -153,8 +153,14 @@ function LocationMarker({
   useEffect(() => {
     if (!markerRef.current || !markerLib) return;
 
+    const stationCount = location.addresses.reduce((acc, address) => {
+      return acc + address.stations.length;
+    }, 0);
+
+    const plus = stationCount ? " +" : "";
+
     const pin = new markerLib.PinElement({
-      glyphText: location.addresses[0].stations[0].callsign,
+      glyphText: `${location.addresses[0].stations[0].callsign}${plus}`,
       glyphColor: "black",
       background: "#EA4335",
       borderColor: "#C5221F",
