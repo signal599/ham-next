@@ -100,6 +100,7 @@ export default function MapView({
           onCameraChanged={handleCameraChanged}
           gestureHandling="greedy"
           disableDefaultUI={false}
+          zoomControl={true}
         >
           {locations.map((location) => (
             <LocationMarker
