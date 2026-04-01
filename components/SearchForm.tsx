@@ -39,6 +39,41 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
   const [inputValue, setInputValue] = useState(initialInputValue(initialQuery));
   const [error, setError] = useState<string | null>(null);
 
+  function handleInputChange(value: string) {
+    if (inputType === "callsign") {
+      value = value
+        .substring(0, 10)
+        .toUpperCase()
+        .replace(/[^0-9A-Z]/g, "");
+    }
+
+    switch (inputType) {
+      case "callsign":
+        value = value
+          .substring(0, 10)
+          .toUpperCase()
+          .replace(/[^0-9A-Z]/g, "");
+        break;
+
+      case "gridsquare":
+        value = value
+          .substring(0, 6)
+          .toUpperCase()
+          .replace(/[^0-9A-Z]/g, "");
+
+        if (value.length > 4) {
+          value = `${value.substring(0, 4)}${value.substring(4, 6).toLowerCase()}`;
+        }
+        break;
+
+      case "zipcode":
+        value = value.substring(0, 5).replace(/\D/g, '');
+        break;
+    }
+
+    setInputValue(value);
+  }
+
   function handleTypeChange(type: InputType) {
     setInputType(type);
     setInputValue("");
@@ -64,7 +99,7 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
 
     if (inputType === "callsign") {
       if (!/^[a-zA-Z0-9]{3,7}$/.test(value)) {
-        setError("Enter a valid callsign (e.g. KT1F).");
+        setError("Enter a valid callsign.");
         return;
       }
       onSearch({ type: "callsign", value: value.toUpperCase() });
@@ -126,13 +161,13 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
           <input
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             placeholder={
               inputType === "callsign"
-                ? "e.g. KT1F"
+                ? "Enter a callsign"
                 : inputType === "gridsquare"
-                  ? "e.g. FN42dt"
-                  : "e.g. 03086"
+                  ? "Enter a six character grid subsquare"
+                  : "Enter a five digit zip code"
             }
             className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             autoCapitalize={inputType === "callsign" ? "characters" : "off"}
