@@ -69,6 +69,12 @@ export default function MapPage({ initialQuery }: Props) {
       fetchStations(query, center);
   }, [query])
 
+  function handleGridSquareClick(code: string) {
+    const query: SearchQuery = {type: 'gridsquare', value: code};
+    setQuery(query)
+    router.push(queryToPath(query))
+  }
+
   return (
     <div className="flex flex-col gap-6 p-4">
       <SearchForm
@@ -88,6 +94,7 @@ export default function MapPage({ initialQuery }: Props) {
           onOpenIdChange={setOpenId}
           gridSquares={gridSquares}
           onCenterChange={handleCenterChange}
+          onGridClick={handleGridSquareClick}
         />
       )}
     </div>

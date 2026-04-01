@@ -108,7 +108,7 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
 
     if (inputType === "gridsquare") {
       if (!/^[a-rA-R]{2}[0-9]{2}([a-xA-X]{2})?$/.test(value)) {
-        setError("Enter a valid gridsquare (e.g. FN42 or FN42dt).");
+        setError("Enter a valid gridsquare.");
         return;
       }
       onSearch({ type: "gridsquare", value: value.toLowerCase() });

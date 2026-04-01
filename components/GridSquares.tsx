@@ -27,7 +27,7 @@ export default function GridSquares({ gridSquares, onGridClick }: Props) {
             border: "1px solid #999",
             borderRadius: 2,
             padding: "1px 4px",
-            fontSize: 14,
+            fontSize: 16,
             fontWeight: "bold",
             whiteSpace: "nowrap",
             cursor: onGridClick ? "pointer" : "default",
