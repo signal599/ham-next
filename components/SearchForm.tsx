@@ -128,7 +128,7 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 p-4 bg-white rounded-lg shadow w-full max-w-md"
+      className="flex flex-col gap-4 bg-white w-full max-w-md"
     >
       {/* Input type selector */}
       <fieldset>
