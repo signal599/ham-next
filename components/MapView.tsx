@@ -19,6 +19,7 @@ interface Props {
   openId: string | null;
   onOpenIdChange: (id: string | null) => void;
   gridSquares: GridSquare[][] | null;
+  showGridSquares: boolean;
   onCenterChange: (center: LatLng) => void;
   onGridClick?: (code: string) => void;
   debounceMs?: number;
@@ -33,6 +34,7 @@ export default function MapView({
   onOpenIdChange,
   onCenterChange,
   gridSquares,
+  showGridSquares,
   onGridClick,
   debounceMs = 2000,
 }: Props) {
@@ -112,7 +114,7 @@ export default function MapView({
               onInfoWindowCloseClick={handleInfoWindowCloseClick}
             />
           ))}
-          {gridSquares && (
+          {showGridSquares && gridSquares && (
             <GridSquares gridSquares={gridSquares} onGridClick={onGridClick} />
           )}
         </Map>

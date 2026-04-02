@@ -18,6 +18,7 @@ export default function MapPage({ initialQuery }: Props) {
   const [locations, setLocations] = useState<Location[]>([])
   const [gridSquares, setGridSquares] = useState<GridSquare[][] | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [showGridSquares, setShowGridSquares] = useState<boolean>(true);
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -82,6 +83,15 @@ export default function MapPage({ initialQuery }: Props) {
         onSearch={handleSearch}
       />
 
+      <label className="flex items-center gap-1.5 cursor-pointer text-sm">
+        <input type="checkbox"
+        name="showgridlines"
+        checked={showGridSquares}
+        onChange={e => setShowGridSquares(e.target.checked)}
+        />
+        Show gridsquares
+      </label>
+
       {error && (
         <p className="text-sm text-red-600">{error}</p>
       )}
@@ -93,6 +103,7 @@ export default function MapPage({ initialQuery }: Props) {
           openId={openId}
           onOpenIdChange={setOpenId}
           gridSquares={gridSquares}
+          showGridSquares={showGridSquares}
           onCenterChange={handleCenterChange}
           onGridClick={handleGridSquareClick}
         />
