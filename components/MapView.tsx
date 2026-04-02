@@ -93,32 +93,30 @@ export default function MapView({
   }, [onOpenIdChange]);
 
   return (
-    <div className="not-prose">
-      <div className="w-full h-[600px] rounded-lg overflow-hidden">
-        <Map
-          defaultCenter={center}
-          defaultZoom={DEFAULT_ZOOM}
-          mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
-          onCameraChanged={handleCameraChanged}
-          gestureHandling="greedy"
-          disableDefaultUI={false}
-          zoomControl={true}
-        >
-          {locations.map((location) => (
-            <LocationMarker
-              key={location.id}
-              location={location}
-              isOpen={openId === location.id}
-              onMarkerClick={handleMarkerClick}
-              onInfoWindowClose={handleInfoWindowClose}
-              onInfoWindowCloseClick={handleInfoWindowCloseClick}
-            />
-          ))}
-          {showGridSquares && gridSquares && (
-            <GridSquares gridSquares={gridSquares} onGridClick={onGridClick} />
-          )}
-        </Map>
-      </div>
+    <div className="w-full h-[600px] rounded-lg overflow-hidden">
+      <Map
+        defaultCenter={center}
+        defaultZoom={DEFAULT_ZOOM}
+        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
+        onCameraChanged={handleCameraChanged}
+        gestureHandling="greedy"
+        disableDefaultUI={false}
+        zoomControl={true}
+      >
+        {locations.map((location) => (
+          <LocationMarker
+            key={location.id}
+            location={location}
+            isOpen={openId === location.id}
+            onMarkerClick={handleMarkerClick}
+            onInfoWindowClose={handleInfoWindowClose}
+            onInfoWindowCloseClick={handleInfoWindowCloseClick}
+          />
+        ))}
+        {showGridSquares && gridSquares && (
+          <GridSquares gridSquares={gridSquares} onGridClick={onGridClick} />
+        )}
+      </Map>
     </div>
   );
 }

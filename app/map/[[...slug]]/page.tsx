@@ -1,17 +1,17 @@
-import { parseSlug } from '@/lib/parse-slug'
-import MapPage from '@/components/MapPage'
+import { parseSlug } from "@/lib/parse-slug";
+import MapPage from "@/components/MapPage";
 
 interface Props {
-  params: { slug?: string[] }
+  params: { slug?: string[] };
 }
 
 export default async function MapSlugPage({ params }: Props) {
-  const { slug } = await params
-  const query = parseSlug(slug)
+  const { slug } = await params;
+  const query = parseSlug(slug);
   return (
     <>
-    <h1 className="m-0">Amateur Radio License Map</h1>
-    <MapPage initialQuery={query} />
+      <h1>Amateur Radio License Map</h1>
+      <MapPage initialQuery={query} />
     </>
-)
+  );
 }

@@ -89,7 +89,7 @@ export default function MapPage({ initialQuery }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="not-prose flex flex-col gap-6">
       <div className="flex flex-col gap-4 p-4 bg-white rounded-lg border border-gray-300 w-full max-w-md">
         <SearchForm initialQuery={initialQuery} onSearch={handleSearch} />
 
@@ -104,7 +104,7 @@ export default function MapPage({ initialQuery }: Props) {
           Show gridsquares
         </label>
 
-        {loading && <p className="text-sm m-0 p-0 not-prose">Loading...</p>}
+        {loading && <p className="text-sm m-0 p-0">Loading...</p>}
         </div>
       </div>
 
