@@ -89,7 +89,7 @@ export default function MapPage({ initialQuery }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 -m-5">
+    <div className="flex flex-col gap-6 -mt-4">
       <div className="flex flex-col gap-4 p-4 bg-white rounded-lg border border-gray-300 w-full max-w-md">
         <SearchForm initialQuery={initialQuery} onSearch={handleSearch} />
 
