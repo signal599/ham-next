@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SearchQuery } from "@/lib/map-types";
 import AddressAutocomplete from "./AddressAutocomplete";
+import { formatGridSquare } from "@/lib/utils";
 
 type InputType = "callsign" | "gridsquare" | "zipcode" | "address";
 
@@ -62,7 +63,7 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
           .replace(/[^0-9A-Z]/g, "");
 
         if (value.length > 4) {
-          value = `${value.substring(0, 4)}${value.substring(4, 6).toLowerCase()}`;
+          value = formatGridSquare(value)
         }
         break;
 

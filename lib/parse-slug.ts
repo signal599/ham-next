@@ -1,4 +1,5 @@
 import { SearchQuery } from './map-types'
+import { formatGridSquare } from './utils'
 
 export function parseSlug(slug: string[] | undefined): SearchQuery | null {
   if (!slug || slug.length === 0) return null
@@ -20,7 +21,7 @@ export function parseSlug(slug: string[] | undefined): SearchQuery | null {
 
   // /map/g/fn42dt
   if (first === 'g' && second) {
-    return { type: 'gridsquare', value: second.toLowerCase() }
+    return { type: 'gridsquare', value: formatGridSquare(second) }
   }
 
   // /map/z/03086
