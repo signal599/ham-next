@@ -66,7 +66,7 @@ export default function RootLayout({
                 <NavLinks links={links} classes="menu menu-horizontal" />
               </div>
             </div>
-            <div className="p-16 pt-5">
+            <div className="sm:p-16 pt-5">
               <article className="prose max-w-none">
                 {children}
               </article>
