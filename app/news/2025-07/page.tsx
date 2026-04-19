@@ -6,7 +6,7 @@ export const metadata = { title };
 
 export default function Page() {
   return (
-    <PageLayout title={title} extra_classes="prose">
+    <PageLayout title={title}>
       <p>
         I’ve refactored the{" "}
         <a href="https://github.com/signal599/haminfo/blob/main/web/modules/custom/ham_station/js/hamstation.js">
