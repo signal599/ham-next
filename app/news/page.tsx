@@ -25,7 +25,7 @@ export default function Page() {
         put the old Drupal version back quickly if there are any showstoppers.
       </p>
       <p>
-        It is both an exciting and scary time to be web developer.
+        The code is still open source <a href="https://github.com/signal599/ham-next">here</a>. It is both an exciting and scary time to be web developer.
       </p>
       <p>
         73
