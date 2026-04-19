@@ -33,7 +33,8 @@ export default function Page() {
       <p>
         73
         <br />
-        Ross KT1F
+        Ross KT1F <br />
+        Email: ross (at) earthbubble.com
       </p>
     </PageLayout>
   );
