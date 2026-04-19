@@ -18,14 +18,14 @@ export default function Page() {
         and <a href="https://react.dev">React</a> on the frontend and lots of
         magic to make it all work together. Most of the backend is still
         happening in Drupal but I intend to move more of it into NextJS as time
-        permits.
+        permits. A friend named Claude is providing some help along the way. <span className="text-2xl">🙂</span>
       </p>
       <p>
         I’m sure it’s not perfect so let me know if you find any problems. I can
         put the old Drupal version back quickly if there are any showstoppers.
       </p>
       <p>
-        It is both an exciting and scary time to be web developer. <span className="text-2xl">🙂</span>
+        It is both an exciting and scary time to be web developer.
       </p>
       <p>
         73
