@@ -6,7 +6,7 @@ export const metadata = { title };
 
 export default function Page() {
   return (
-    <PageLayout title={title}>
+    <PageLayout title={title} extra_classes="prose">
       <p>
         Time certainly flies when you’re not looking. This site has been running
         pretty much unattended for over six years. It was well overdue for an

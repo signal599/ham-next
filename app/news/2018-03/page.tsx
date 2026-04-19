@@ -6,7 +6,7 @@ export const metadata = { title };
 
 export default function Page() {
   return (
-    <PageLayout title={title}>
+    <PageLayout title={title} extra_classes="prose">
       <p>
         Welcome to my little spare time project. I’ve been working on this on
         and off for about a year as time and motivation allows.

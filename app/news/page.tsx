@@ -5,7 +5,7 @@ export const metadata = { title: "News and Info" };
 
 export default function Page() {
   return (
-    <PageLayout title="News and Info: April 2026">
+    <PageLayout title="News and Info: April 2026" extra_classes="prose">
       <p>
         This project continues to serve as a learning tool for me while
         hopefully providing some usefulness.
