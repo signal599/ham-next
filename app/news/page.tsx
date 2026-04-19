@@ -1,8 +1,11 @@
+import PageLayout from "@/components/page-layout";
+
+export const metadata = { title: "News and Info" };
+
 export default function Page() {
   return (
-    <>
-      <h1>News and Info</h1>
+    <PageLayout title="News and Info">
       <p>Here is some news</p>
-    </>
-  )
+    </PageLayout>
+  );
 }

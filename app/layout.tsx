@@ -15,7 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Amateur Radio License Map",
+  title: {
+    template: "%s | Amateur Radio License Map",
+    default: "Amateur Radio License Map",
+  },
   description: "An interactive map of amateur radio licensees in the USA.",
 };
 
@@ -40,7 +43,7 @@ export default function RootLayout({
           <div className="drawer-content flex flex-col">
             {/* Navbar */}
             <div className="navbar bg-base-300 w-full">
-              <div className="flex-none lg:hidden">
+              <div className="flex-none md:hidden">
                 <label
                   htmlFor="my-drawer-2"
                   aria-label="open sidebar"
@@ -61,16 +64,14 @@ export default function RootLayout({
                   </svg>
                 </label>
               </div>
-              <div className="mx-2 flex-1 px-2"><Link href="/map">Amateur Radio</Link></div>
-              <div className="hidden flex-none lg:block">
+              <div className="mx-2 flex-1 px-2">
+                <Link href="/map">Amateur Radio</Link>
+              </div>
+              <div className="hidden flex-none md:block">
                 <NavLinks links={links} classes="menu menu-horizontal" />
               </div>
             </div>
-            <div className="sm:p-16 pt-5">
-              <article className="prose max-w-none">
-                {children}
-              </article>
-            </div>
+            <article className="prose max-w-none">{children}</article>
           </div>
           <div className="drawer-side">
             <label

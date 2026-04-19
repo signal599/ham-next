@@ -1,11 +1,12 @@
 import { getStatusData } from "@/lib/status-report";
+import PageLayout from "@/components/page-layout";
+
+export const metadata = { title: "Status" };
 
 export default async function Page() {
   const { result, totals } = await getStatusData();
   return (
-    <>
-      <h1>License Map Status</h1>
-
+    <PageLayout title="License Map Status">
       <p>The table below shows the status of the geocoding.</p>
       <ul>
         <li>
@@ -62,6 +63,6 @@ export default async function Page() {
           </tr>
         </tfoot>
       </table>
-    </>
+    </PageLayout>
   );
 }
