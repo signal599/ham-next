@@ -18,7 +18,7 @@ export default function Page() {
         and <a href="https://react.dev">React</a> on the frontend and lots of
         magic to make it all work together. The language is TypeScript. Most of
         the backend is still happening in Drupal but I intend to move more of it
-        into NextJS as time permits. A friend named Claude is providing some
+        into Next.js as time permits. A friend named Claude is providing some
         help along the way. <span className="text-2xl">🙂</span>
       </p>
       <p>
