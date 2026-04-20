@@ -19,7 +19,7 @@ export default async function MapSlugPage({ params }: Props) {
           Click to show instructions
         </div>
         <div className="collapse-content text-sm">
-          <p>
+          <p className="mt-0">
             Use this map to find amateur radio license holders in the USA.{" "}
             <a href="/news">Click here</a> for more general info and history.
           </p>
@@ -49,7 +49,7 @@ export default async function MapSlugPage({ params }: Props) {
             temporarily remove the gridsquare lines and labels if they get in
             the way.
           </p>
-          <p>Click on a marker to see a popup of name and address info.</p>
+          <p className="mb-0">Click on a marker to see a popup of name and address info.</p>
         </div>
       </div>
 
