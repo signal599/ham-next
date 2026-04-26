@@ -39,7 +39,7 @@ export function parseSlug(slug: string[] | undefined): SearchQuery | null {
 
 export function queryToPath(query: SearchQuery): string {
   switch (query.type) {
-    case 'callsign':  return `/map/c/${query.value.toUpperCase()}`
+    case 'callsign':  return `/map/${query.value.toUpperCase()}`
     case 'gridsquare': return `/map/g/${query.value.toLowerCase()}`
     case 'zipcode':   return `/map/z/${query.value}`
     case 'point':     return `/map/p/${query.lat}/${query.lng}`
