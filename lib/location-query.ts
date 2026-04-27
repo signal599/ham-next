@@ -1,6 +1,7 @@
-import { hamLocation } from "@/src/db/schema";
-import { and, asc, between, desc, isNotNull, lt, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
+import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
+import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
+import { Address, Location, Station } from "./map-types";
 
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
@@ -9,11 +10,18 @@ export async function doQuery(query) {
   const lat = 42.801469;
   const lng = -71.741511;
 
-  const locations = getLocations(lat, lng, RADIUS);
+  const db = drizzle(process.env.DATABASE_URL!);
+  const locationIds = await getLocationIds(db, lat, lng, RADIUS);
+  const locations = await getLocations(db, locationIds);
+  const markerData = getMarkerData(locations);
 }
 
-async function getLocations(lat: number, lng: number, radius: number) {
-  const db = drizzle(process.env.DATABASE_URL!);
+async function getLocationIds(
+  db: MySql2Database,
+  lat: number,
+  lng: number,
+  radius: number,
+): Promise<number[]> {
   const locationAlias = "ham_location";
   const distanceFormula = buildDistanceFormula(lat, lng, locationAlias);
   const boundingBoxFormula = buildBoundingBoxFormula(
@@ -24,12 +32,7 @@ async function getLocations(lat: number, lng: number, radius: number) {
   );
 
   const rows = await db
-    .select({
-      id: hamLocation.id,
-      lat: hamLocation.latitude,
-      lng: hamLocation.longitude,
-      distance: sql.raw(distanceFormula),
-    })
+    .select({ id: hamLocation.id })
     .from(hamLocation)
     .where(
       and(
@@ -42,13 +45,7 @@ async function getLocations(lat: number, lng: number, radius: number) {
     .orderBy(asc(sql.raw(distanceFormula)))
     .limit(200);
 
-  return rows.map((location) => {
-    return {
-      id: location.id,
-      lat: parseFloat(location.lat!),
-      lng: parseFloat(location.lng!),
-    };
-  });
+  return rows.map((row) => row.id);
 }
 
 function buildBoundingBoxFormula(
@@ -74,17 +71,6 @@ function buildDistanceFormula(
   lng1: number,
   tableAlias: string,
 ): string {
-  // distance_unit *
-  // DEGREES(
-  //     ATAN2(
-  //       SQRT(
-  //         POW(COS(RADIANS(lat2)) * SIN(RADIANS(lng2 - lng1)), 2) +
-  //         POW(COS(RADIANS(lat1)) * SIN(RADIANS(lat2)) -
-  //             (SIN(RADIANS(lat1)) * COS(RADIANS(lat2)) *
-  //               COS(RADIANS(lng2 - lng1))), 2)),
-  //       SIN(RADIANS(lat1)) * SIN(RADIANS(lat2)) +
-  //       COS(RADIANS(lat1)) * COS(RADIANS(lat2)) * COS(RADIANS(lng2 - lng1))))
-
   const formula = `unitFactor *
   DEGREES(
       ATAN2(
@@ -109,4 +95,113 @@ function buildDistanceFormula(
 
 function degreesToRadians(deg: number): number {
   return deg * (Math.PI / 180);
+}
+
+type FlatLocationDTO = {
+  id: number;
+  lat: string | null;
+  lng: string | null;
+  address_id: number;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  station_id: number;
+  callsign: string,
+  first_name: string | null;
+  middle_name: string | null;
+  last_name: string | null;
+  suffix: string | null;
+  organization: string | null;
+  operator_class: string | null;
 };
+
+async function getLocations(
+  db: MySql2Database,
+  locationIds: number[],
+): Promise<FlatLocationDTO[]> {
+  if (!locationIds.length) {
+    return [];
+  }
+
+  return await db
+    .select({
+      id: hamLocation.id,
+      lat: hamLocation.latitude,
+      lng: hamLocation.longitude,
+      address_id: hamAddress.id,
+      address_line1: hamAddress.addressAddressLine1,
+      address_line2: hamAddress.addressAddressLine2,
+      city: hamAddress.addressLocality,
+      state: hamAddress.addressAdministrativeArea,
+      zip: hamAddress.addressPostalCode,
+      station_id: hamStation.id,
+      callsign: hamStation.callsign,
+      first_name: hamStation.firstName,
+      middle_name: hamStation.middleName,
+      last_name: hamStation.lastName,
+      suffix: hamStation.suffix,
+      organization: hamStation.organization,
+      operator_class: hamStation.operatorClass,
+    })
+    .from(hamLocation)
+    .innerJoin(hamAddress, eq(hamAddress.locationId, hamLocation.id))
+    .innerJoin(hamStation, eq(hamStation.addressHash, hamAddress.hash))
+    .where(
+      and(
+        inArray(hamAddress.locationId, locationIds),
+        isNotNull(hamLocation.latitude),
+        isNotNull(hamLocation.longitude),
+      ),
+    )
+    .orderBy(asc(hamLocation.id), asc(hamAddress.id), asc(hamStation.id));
+}
+
+async function getMarkerData(flatLocations: FlatLocationDTO[]) {
+  const locations: Location[] = [];
+
+  let locationId: number = 0;
+  let locationIdx: number = 0;
+  let addressId: number = 0;
+  let addressIdx: number = 0;
+
+  flatLocations.forEach((flatLocation: FlatLocationDTO) => {
+    if (flatLocation.id !== locationId) {
+      locations.push({
+        id: flatLocation.id.toString(),
+        lat: parseFloat(flatLocation.lat!),
+        lng: parseFloat(flatLocation.lng!),
+        addresses: [],
+      });
+
+      locationId = flatLocation.id;
+      locationIdx = locations.length - 1;
+      addressId = 0;
+    }
+
+    if (flatLocation.address_id !== addressId) {
+      locations[locationIdx].addresses.push({
+        id: flatLocation.address_id.toString(),
+        address1: flatLocation.address_line1 ?? '',
+        address2: flatLocation.address_line2 ?? '',
+        city: flatLocation.city ?? '',
+        state: flatLocation.state ?? '',
+        zip: flatLocation.zip ?? '',
+        stations: []
+      });
+
+      addressId = flatLocation.address_id;
+      addressIdx = locations[locationIdx].addresses.length - 1;
+    }
+
+    locations[locationIdx].addresses[addressIdx].stations.push({
+      id: flatLocation.station_id.toString(),
+      callsign: flatLocation.callsign,
+      name: `${flatLocation.first_name} ${flatLocation.last_name}`,
+      operatorClass: flatLocation.operator_class ?? ''
+    });
+  });
+
+  console.log(JSON.stringify(locations));
+}
