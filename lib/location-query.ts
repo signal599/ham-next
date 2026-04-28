@@ -239,7 +239,7 @@ function addressCleanup(addresses: Address[]) {
       let bestAddress: Address | null = null;
 
       for (const add of adds) {
-        allStations.push(add.stations);
+        allStations.push(...add.stations);
 
         if (!bestAddress && addressHasLowerCase(add)) {
           bestAddress = add;
