@@ -2,6 +2,7 @@ import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
 import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
 import { Address, Location, Station } from "./map-types";
+import { addressHasLowerCase, buildAddressKey } from "./utils";
 
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
@@ -108,7 +109,7 @@ type FlatLocationDTO = {
   state: string | null;
   zip: string | null;
   station_id: number;
-  callsign: string,
+  callsign: string;
   first_name: string | null;
   middle_name: string | null;
   last_name: string | null;
@@ -183,12 +184,12 @@ async function getMarkerData(flatLocations: FlatLocationDTO[]) {
     if (flatLocation.address_id !== addressId) {
       locations[locationIdx].addresses.push({
         id: flatLocation.address_id.toString(),
-        address1: flatLocation.address_line1 ?? '',
-        address2: flatLocation.address_line2 ?? '',
-        city: flatLocation.city ?? '',
-        state: flatLocation.state ?? '',
-        zip: flatLocation.zip ?? '',
-        stations: []
+        address1: flatLocation.address_line1 ?? "",
+        address2: flatLocation.address_line2 ?? "",
+        city: flatLocation.city ?? "",
+        state: flatLocation.state ?? "",
+        zip: flatLocation.zip ?? "",
+        stations: [],
       });
 
       addressId = flatLocation.address_id;
@@ -199,9 +200,64 @@ async function getMarkerData(flatLocations: FlatLocationDTO[]) {
       id: flatLocation.station_id.toString(),
       callsign: flatLocation.callsign,
       name: `${flatLocation.first_name} ${flatLocation.last_name}`,
-      operatorClass: flatLocation.operator_class ?? ''
+      operatorClass: flatLocation.operator_class ?? "",
+    });
+  });
+
+  locations.forEach((location) => {
+    if (location.addresses.length > 1) {
+      location.addresses = addressCleanup(location.addresses);
+    }
+
+    location.addresses.forEach((address) => {
+      if (address.stations.length > 1) {
+        address.stations = stationsCleanup(address.stations);
+      }
     });
   });
 
   console.log(JSON.stringify(locations));
+}
+
+function addressCleanup(addresses: Address[]) {
+  const addMap = new Map();
+
+  addresses.forEach((address) => {
+    const key = buildAddressKey(address);
+    const existing = addMap.get(key) || [];
+    addMap.set(key, [...existing, address]);
+  });
+
+  const newAddresses: Address[] = []
+
+  for (const adds of addMap.values()) {
+    if (adds.length === 1) {
+      newAddresses.push(adds[0]);
+    }
+    else {
+      const allStations: Station[] = [];
+      let bestAddress: Address | null = null;
+
+      for (const add of adds) {
+        allStations.push(add.stations);
+
+        if (!bestAddress && addressHasLowerCase(add)) {
+          bestAddress = add;
+        }
+      }
+
+      if (!bestAddress) {
+        bestAddress = adds[0];
+      }
+
+      bestAddress!.stations = allStations;
+      newAddresses.push(bestAddress!);
+    }
+  }
+
+  return newAddresses;
+}
+
+function stationsCleanup(stations: Station[]) {
+  return stations;
 }
