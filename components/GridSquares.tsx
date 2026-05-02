@@ -6,20 +6,19 @@ import { GridSquare } from "@/lib/map-types";
 import GridSquareOverlay from "./GridSquareOverlay";
 
 interface Props {
-  gridSquares: GridSquare[][];
+  gridSquares: GridSquare[];
   onGridClick?: (code: string) => void;
 }
 
 export default function GridSquares({ gridSquares, onGridClick }: Props) {
-  const flat = gridSquares.flat();
 
   return (
     <>
       <GridSquareOverlay gridSquares={gridSquares} />
-      {flat.map((sq) => (
+      {gridSquares.map((sq) => (
         <AdvancedMarker
           key={sq.code}
-          position={{ lat: sq.latCenter, lng: sq.lngCenter }}
+          position={{ lat: sq.lat, lng: sq.lng }}
           onClick={() => onGridClick?.(sq.code)}
         >
           <div style={{

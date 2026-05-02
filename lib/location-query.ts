@@ -1,20 +1,100 @@
 import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
 import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
-import { Address, Location, Station } from "./map-types";
-import { addressHasLowerCase, buildAddressKey } from "./utils";
+import { Address, HamInfoResponse, LatLng, Location, LocationsResponse, SearchQuery, Station } from "./map-types";
+import { addressHasLowerCase, buildAddressKey, MathLib, roundPoint } from "./utils";
+import { getNeighboringGridSquares, GridSquareToLatLng } from "./gridsquares";
 
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
 
-export async function doQuery(query) {
-  const lat = 42.801469;
-  const lng = -71.741511;
-
+export async function doQuery(query: SearchQuery): Promise<HamInfoResponse> {
   const db = drizzle(process.env.DATABASE_URL!);
-  const locationIds = await getLocationIds(db, lat, lng, RADIUS);
+  const centerInfo = await getMapCenterInfo(db, query);
+
+  if (!centerInfo) {
+    return {
+      error: 'Not found'
+    }
+  }
+
+  const center = centerInfo.point;
+
+  const locationIds = await getLocationIds(
+    db,
+    center.lat,
+    center.lng,
+    RADIUS,
+  );
+
   const locations = await getLocations(db, locationIds);
   const markerData = getMarkerData(locations);
+  const gridSquares = getNeighboringGridSquares(center.lat, center.lng);
+
+  return {
+    data: {
+      center: center,
+      gridsquares: gridSquares,
+      locations: markerData,
+      activeLocationId: centerInfo.locationId?.toString()
+    }
+  }
+}
+
+async function getMapCenterInfo(db: MySql2Database, query: SearchQuery): Promise<{point: LatLng, locationId?: number} | null> {
+  switch (query.type) {
+    case "callsign":
+      return await getCallsignCoords(db, query.value);
+      break;
+
+    case "gridsquare":
+      return {point: GridSquareToLatLng(query.value)};
+      break;
+
+    case "zipcode":
+      return {point: { lat: 42.801469, lng: -71.741511 }};
+      break;
+
+    case "point":
+      return {point: { lat: query.lat, lng: query.lng }};
+      break;
+  }
+}
+
+async function getCallsignCoords(
+  db: MySql2Database,
+  callsign: string,
+): Promise<{point: LatLng, locationId: number} | null> {
+  const rows = await db
+    .select({
+      location_id: hamLocation.id,
+      lat: hamLocation.latitude,
+      lng: hamLocation.longitude,
+    })
+    .from(hamStation)
+    .innerJoin(hamAddress, eq(hamAddress.hash, hamStation.addressHash))
+    .innerJoin(hamLocation, eq(hamLocation.id, hamAddress.locationId))
+    .where(and(
+      eq(hamStation.callsign, callsign),
+      isNotNull(hamLocation.latitude),
+      isNotNull(hamLocation.longitude)
+    ));
+
+  if (!rows.length) {
+    return null;
+  }
+
+  const row = rows[0];
+
+  const point = roundPoint({
+    lat: parseFloat(row.lat!),
+    lng: parseFloat(row.lng!),
+  });
+
+  return {
+    point,
+    locationId: row.location_id,
+  }
 }
 
 async function getLocationIds(
@@ -159,7 +239,7 @@ async function getLocations(
     .orderBy(asc(hamLocation.id), asc(hamAddress.id), asc(hamStation.id));
 }
 
-async function getMarkerData(flatLocations: FlatLocationDTO[]) {
+function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
   const locations: Location[] = [];
 
   let locationId: number = 0;
@@ -169,10 +249,12 @@ async function getMarkerData(flatLocations: FlatLocationDTO[]) {
 
   flatLocations.forEach((flatLocation: FlatLocationDTO) => {
     if (flatLocation.id !== locationId) {
+      const point: LatLng = roundPoint({lat: parseFloat(flatLocation.lat!), lng: parseFloat(flatLocation.lng!)});
+
       locations.push({
         id: flatLocation.id.toString(),
-        lat: parseFloat(flatLocation.lat!),
-        lng: parseFloat(flatLocation.lng!),
+        lat: point.lat,
+        lng: point.lng,
         addresses: [],
       });
 
@@ -216,7 +298,7 @@ async function getMarkerData(flatLocations: FlatLocationDTO[]) {
     });
   });
 
-  console.log(JSON.stringify(locations));
+  return locations;
 }
 
 function addressCleanup(addresses: Address[]) {
@@ -228,13 +310,12 @@ function addressCleanup(addresses: Address[]) {
     addMap.set(key, [...existing, address]);
   });
 
-  const newAddresses: Address[] = []
+  const newAddresses: Address[] = [];
 
   for (const adds of addMap.values()) {
     if (adds.length === 1) {
       newAddresses.push(adds[0]);
-    }
-    else {
+    } else {
       const allStations: Station[] = [];
       let bestAddress: Address | null = null;
 

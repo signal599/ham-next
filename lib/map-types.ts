@@ -9,14 +9,20 @@ export type LatLng = {
   lng: number
 }
 
+// export type GridSquare = {
+//   code: string
+//   latNorth: number
+//   latCenter: number
+//   latSouth: number
+//   lngEast: number
+//   lngCenter: number
+//   lngWest: number
+// }
+
 export type GridSquare = {
   code: string
-  latNorth: number
-  latCenter: number
-  latSouth: number
-  lngEast: number
-  lngCenter: number
-  lngWest: number
+  lat: number
+  lng: number
 }
 
 export type Station = {
@@ -46,8 +52,8 @@ export type Location = {
 export type LocationsResponse = {
   center: { lat: number; lng: number }
   locations: Location[]
-  activeLocationId: string | null
-  gridsquares: GridSquare[][]
+  activeLocationId?: string
+  gridsquares: GridSquare[]
 }
 
 export type HamInfoQuery =

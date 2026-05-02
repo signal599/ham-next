@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
+import { MathLib, roundPoint } from '@/lib/utils'
+import { LatLng } from '@/lib/map-types'
 
 interface Props {
   onPlaceSelect: (lat: number, lng: number) => void
@@ -65,7 +67,8 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
       await place.fetchFields({ fields: ['location'] })
 
       if (place.location) {
-        onPlaceSelect(place.location.lat(), place.location.lng())
+        const point: LatLng = roundPoint({lat: place.location.lat(), lng: place.location.lng()})
+        onPlaceSelect(point.lat, point.lng);
         // Refresh session token after completed selection
         setSessionToken(new placesLib.AutocompleteSessionToken())
       } else {

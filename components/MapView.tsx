@@ -18,7 +18,7 @@ interface Props {
   locations: Location[];
   openId: string | null;
   onOpenIdChange: (id: string | null) => void;
-  gridSquares: GridSquare[][] | null;
+  gridSquares: GridSquare[] | null;
   showGridSquares: boolean;
   onCenterChange: (center: LatLng) => void;
   onGridClick?: (code: string) => void;

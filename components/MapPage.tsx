@@ -13,6 +13,7 @@ import {
   HamInfoResponse,
 } from "@/lib/map-types";
 import { queryToPath } from "@/lib/parse-slug";
+import { roundPoint } from "@/lib/utils";
 
 interface Props {
   initialQuery: SearchQuery | null;
@@ -25,7 +26,7 @@ export default function MapPage({ initialQuery }: Props) {
     null,
   );
   const [locations, setLocations] = useState<Location[]>([]);
-  const [gridSquares, setGridSquares] = useState<GridSquare[][] | null>(null);
+  const [gridSquares, setGridSquares] = useState<GridSquare[] | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [showGridSquares, setShowGridSquares] = useState<boolean>(true);
   const [loading, setLoading] = useState(false);
@@ -77,7 +78,7 @@ export default function MapPage({ initialQuery }: Props) {
     (center: LatLng) => {
       if (!query) return;
       // The map has moved. The query value is ignored.
-      fetchStations(query, center);
+      fetchStations(query, roundPoint(center));
     },
     [query],
   );

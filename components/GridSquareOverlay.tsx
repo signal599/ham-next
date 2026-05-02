@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { GridSquare } from "@/lib/map-types";
+import { getGridSquareBounds } from "@/lib/gridsquares";
 
 interface Props {
-  gridSquares: GridSquare[][];
+  gridSquares: GridSquare[];
   onGridClick?: (code: string) => void;
 }
 
@@ -16,16 +17,17 @@ export default function GridSquareOverlay({ gridSquares, onGridClick }: Props) {
   useEffect(() => {
     if (!map || !mapsLib) return;
 
-    const flat = gridSquares.flat();
+//    const flat = gridSquares.flat();
 
-    const rectangles = flat.map((sq) => {
+    const rectangles = gridSquares.map((sq) => {
+      const bounds = getGridSquareBounds(sq.lat, sq.lng);
       const rect = new mapsLib.Rectangle({
         map,
         bounds: {
-          north: sq.latNorth,
-          south: sq.latSouth,
-          east: sq.lngEast,
-          west: sq.lngWest,
+          north: bounds.north,
+          south: bounds.south,
+          east: bounds.east,
+          west: bounds.west,
         },
         strokeColor: "#000000",
         strokeOpacity: 0.5,

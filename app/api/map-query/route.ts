@@ -31,9 +31,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    await doLocQuery(query);
-    const response = await doQuery(query);
-    return NextResponse.json(response);
+    const newResponse = await doLocQuery(query);
+//    const response = await doQuery(query);
+    return NextResponse.json(newResponse);
   } catch (e) {
     return NextResponse.json({ error: "Query failed" }, { status: 500 });
   }
