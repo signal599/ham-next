@@ -42,8 +42,8 @@ export type Location = {
 export type LocationsResponse = {
   center: { lat: number; lng: number }
   locations: Location[]
-  activeLocationId: string | null,
   gridsquares: GridSquare[]
+  activeLocationId?: number,
 }
 
 export type HamInfoQuery =

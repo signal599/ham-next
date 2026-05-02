@@ -36,7 +36,7 @@ export async function doQuery(query: SearchQuery): Promise<HamInfoResponse> {
       center: center,
       gridsquares: gridSquares,
       locations: markerData,
-      activeLocationId: centerInfo.locationId?.toString()
+      activeLocationId: centerInfo.locationId,
     }
   }
 }

@@ -27,7 +27,7 @@ export default function MapPage({ initialQuery }: Props) {
   );
   const [locations, setLocations] = useState<Location[]>([]);
   const [gridSquares, setGridSquares] = useState<GridSquare[] | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<number | undefined>();
   const [showGridSquares, setShowGridSquares] = useState<boolean>(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

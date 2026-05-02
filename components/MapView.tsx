@@ -16,8 +16,8 @@ import LocationContent from "./LocationContent";
 interface Props {
   center: { lat: number; lng: number };
   locations: Location[];
-  openId: string | null;
-  onOpenIdChange: (id: string | null) => void;
+  openId?: number;
+  onOpenIdChange: (id?: number) => void;
   gridSquares: GridSquare[] | null;
   showGridSquares: boolean;
   onCenterChange: (center: LatLng) => void;
@@ -41,7 +41,7 @@ export default function MapView({
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleMarkerClick = useCallback(
     (id: number) => {
-      onOpenIdChange(openId === id ? null : id);
+      onOpenIdChange(openId === id ? undefined : id);
     },
     [onOpenIdChange, openId],
   );
@@ -83,13 +83,13 @@ export default function MapView({
 
     const markerPos = new google.maps.LatLng(location.lat, location.lng);
     if (!bounds.contains(markerPos)) {
-      onOpenIdChange(null);
+      onOpenIdChange();
     }
   }, [map, openId, locations, onOpenIdChange]);
 
   const handleInfoWindowCloseClick = useCallback(() => {
     // User explicitly clicked the X button.
-    onOpenIdChange(null);
+    onOpenIdChange();
   }, [onOpenIdChange]);
 
   return (
@@ -107,7 +107,7 @@ export default function MapView({
           <LocationMarker
             key={location.id}
             location={location}
-            isOpen={openId === location.id.toString()}
+            isOpen={openId === location.id}
             onMarkerClick={handleMarkerClick}
             onInfoWindowClose={handleInfoWindowClose}
             onInfoWindowCloseClick={handleInfoWindowCloseClick}
