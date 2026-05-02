@@ -9,16 +9,6 @@ export type LatLng = {
   lng: number
 }
 
-// export type GridSquare = {
-//   code: string
-//   latNorth: number
-//   latCenter: number
-//   latSouth: number
-//   lngEast: number
-//   lngCenter: number
-//   lngWest: number
-// }
-
 export type GridSquare = {
   code: string
   lat: number
@@ -26,14 +16,14 @@ export type GridSquare = {
 }
 
 export type Station = {
-  id: string
+  id: number,
   callsign: string
   name: string
   operatorClass: string
 }
 
 export type Address = {
-  id: string
+  id: number
   address1: string
   address2: string
   city: string
@@ -43,7 +33,7 @@ export type Address = {
 }
 
 export type Location = {
-  id: string
+  id: number
   lat: number
   lng: number
   addresses: Address[]
@@ -52,7 +42,7 @@ export type Location = {
 export type LocationsResponse = {
   center: { lat: number; lng: number }
   locations: Location[]
-  activeLocationId?: string
+  activeLocationId: string | null,
   gridsquares: GridSquare[]
 }
 

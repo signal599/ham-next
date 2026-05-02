@@ -252,7 +252,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
       const point: LatLng = roundPoint({lat: parseFloat(flatLocation.lat!), lng: parseFloat(flatLocation.lng!)});
 
       locations.push({
-        id: flatLocation.id.toString(),
+        id: flatLocation.id,
         lat: point.lat,
         lng: point.lng,
         addresses: [],
@@ -265,7 +265,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
 
     if (flatLocation.address_id !== addressId) {
       locations[locationIdx].addresses.push({
-        id: flatLocation.address_id.toString(),
+        id: flatLocation.address_id,
         address1: flatLocation.address_line1 ?? "",
         address2: flatLocation.address_line2 ?? "",
         city: flatLocation.city ?? "",
@@ -279,7 +279,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
     }
 
     locations[locationIdx].addresses[addressIdx].stations.push({
-      id: flatLocation.station_id.toString(),
+      id: flatLocation.station_id,
       callsign: flatLocation.callsign,
       name: `${flatLocation.first_name} ${flatLocation.last_name}`,
       operatorClass: flatLocation.operator_class ?? "",

@@ -40,7 +40,7 @@ export default function MapView({
 }: Props) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleMarkerClick = useCallback(
-    (id: string) => {
+    (id: number) => {
       onOpenIdChange(openId === id ? null : id);
     },
     [onOpenIdChange, openId],
@@ -107,7 +107,7 @@ export default function MapView({
           <LocationMarker
             key={location.id}
             location={location}
-            isOpen={openId === location.id}
+            isOpen={openId === location.id.toString()}
             onMarkerClick={handleMarkerClick}
             onInfoWindowClose={handleInfoWindowClose}
             onInfoWindowCloseClick={handleInfoWindowCloseClick}
@@ -124,7 +124,7 @@ export default function MapView({
 interface LocationMarkerProps {
   location: Location;
   isOpen: boolean;
-  onMarkerClick: (id: string) => void;
+  onMarkerClick: (id: number) => void;
   onInfoWindowClose: () => void;
   onInfoWindowCloseClick: () => void;
 }
