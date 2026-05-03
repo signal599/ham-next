@@ -28,9 +28,8 @@ export async function doQuery(query: SearchQuery): Promise<LocationsResponse> {
   const locationIds = await getLocationIds(db, center.lat, center.lng, RADIUS);
 
   const locations = await getLocations(db, locationIds);
-  const markerData = getMarkerData(locations);
+  const markerData = getMarkerData(locations, query.type === "callsign" ? query.value : null);
   const gridSquares = getNeighboringGridSquares(center.lat, center.lng);
-  GeocodeZipcode('03086');
 
   return {
     center: center,
@@ -248,7 +247,7 @@ async function getLocations(
     .orderBy(asc(hamLocation.id), asc(hamAddress.id), asc(hamStation.id));
 }
 
-function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
+function getMarkerData(flatLocations: FlatLocationDTO[], activeCallsign: string | null): Location[] {
   const locations: Location[] = [];
 
   let locationId: number = 0;
@@ -298,6 +297,8 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
     });
   });
 
+  const stationSorter = getStationSorter();
+
   locations.forEach((location) => {
     if (location.addresses.length > 1) {
       location.addresses = addressCleanup(location.addresses);
@@ -305,7 +306,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
 
     location.addresses.forEach((address) => {
       if (address.stations.length > 1) {
-        address.stations = stationsCleanup(address.stations);
+        stationSorter(address.stations, activeCallsign);
       }
     });
   });
@@ -371,6 +372,30 @@ function getStationName(flatLocation: FlatLocationDTO): string {
   return name.join(" ");
 }
 
-function stationsCleanup(stations: Station[]) {
-  return stations;
+function getStationSorter() {
+  const rankings = new Map([
+    ['E', 1],
+    ['A', 2],
+    ['G', 3],
+    ['T', 4],
+    ['N', 5],
+  ]);
+
+  return (stations: Station[], activeCallsign: string | null): void => {
+    stations.sort((a: Station, b: Station) => {
+      // Put the active call at the top/ Otherwise sort by license class.
+      const rankA = (activeCallsign && a.callsign === activeCallsign) ? 0 : (rankings.get(a.operatorClass) ?? 999);
+      const rankB = (activeCallsign && b.callsign === activeCallsign) ? 0 : (rankings.get(b.operatorClass) ?? 999);
+
+      if (rankA < rankB) {
+        return -1;
+      }
+
+      if (rankB > rankA) {
+        return 1;
+      }
+
+      return 0;
+    });
+  };
 }
