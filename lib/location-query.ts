@@ -293,7 +293,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
     locations[locationIdx].addresses[addressIdx].stations.push({
       id: flatLocation.station_id,
       callsign: flatLocation.callsign,
-      name: `${flatLocation.first_name} ${flatLocation.last_name}`,
+      name: getStationName(flatLocation),
       operatorClass: flatLocation.operator_class ?? "",
     });
   });
@@ -349,6 +349,26 @@ function addressCleanup(addresses: Address[]) {
   }
 
   return newAddresses;
+}
+
+function getStationName(flatLocation: FlatLocationDTO): string {
+  if (flatLocation.organization) {
+    return flatLocation.organization;
+  }
+
+  const name = [flatLocation.first_name];
+
+  if (flatLocation.middle_name) {
+    name.push(flatLocation.middle_name);
+  }
+
+  name.push(flatLocation.last_name);
+
+  if (flatLocation.suffix) {
+    name.push(flatLocation.suffix);
+  }
+
+  return name.join(" ");
 }
 
 function stationsCleanup(stations: Station[]) {
