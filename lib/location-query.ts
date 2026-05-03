@@ -9,60 +9,56 @@ import {
   SearchQuery,
   Station,
 } from "./map-types";
-import {
-  addressHasLowerCase,
-  buildAddressKey,
-  roundPoint,
-} from "./utils";
+import { addressHasLowerCase, buildAddressKey, roundPoint } from "./utils";
 import { getNeighboringGridSquares, GridSquareToLatLng } from "./gridsquares";
 import { GeocodeZipcode } from "./geocode-zipcode";
 
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
 
-export async function doQuery(query: SearchQuery): Promise<LocationsResponse> {
+export async function doQuery(
+  query: SearchQuery,
+  initialCallsign: string | null,
+): Promise<LocationsResponse> {
   const db = drizzle(process.env.DATABASE_URL!);
-  const centerInfo = await getMapCenterInfo(db, query);
+  const center = await getMapCenterInfo(db, query);
 
-  const center = centerInfo.point;
   const locationIds = await getLocationIds(db, center.lat, center.lng, RADIUS);
 
-  const locations = await getLocations(db, locationIds);
-  const markerData = getMarkerData(locations, query.type === "callsign" ? query.value : null);
-  const gridSquares = getNeighboringGridSquares(center.lat, center.lng);
+  const flatLocations = await getLocations(db, locationIds);
+  const { locations, activeLocationId } = getMarkerData(
+    flatLocations,
+    initialCallsign,
+  );
+  const gridsquares = getNeighboringGridSquares(center.lat, center.lng);
 
   return {
-    center: center,
-    gridsquares: gridSquares,
-    locations: markerData,
-    activeLocationId: centerInfo.locationId,
+    center,
+    gridsquares,
+    locations,
+    activeLocationId,
   };
 }
-
-type CenterInfo = {
-  point: LatLng;
-  locationId?: number;
-};
 
 async function getMapCenterInfo(
   db: MySql2Database,
   query: SearchQuery,
-): Promise<CenterInfo> {
+): Promise<LatLng> {
   switch (query.type) {
     case "callsign":
       return await getCallsignCoords(db, query.value);
       break;
 
     case "gridsquare":
-      return { point: GridSquareToLatLng(query.value) };
+      return GridSquareToLatLng(query.value);
       break;
 
     case "zipcode":
-      return { point: await GeocodeZipcode(query.value) };
+      return await GeocodeZipcode(query.value);
       break;
 
     case "point":
-      return { point: { lat: query.lat, lng: query.lng } };
+      return { lat: query.lat, lng: query.lng };
       break;
   }
 }
@@ -70,7 +66,7 @@ async function getMapCenterInfo(
 async function getCallsignCoords(
   db: MySql2Database,
   callsign: string,
-): Promise<CenterInfo> {
+): Promise<LatLng> {
   const rows = await db
     .select({
       location_id: hamLocation.id,
@@ -94,15 +90,10 @@ async function getCallsignCoords(
 
   const row = rows[0];
 
-  const point = roundPoint({
+  return roundPoint({
     lat: parseFloat(row.lat!),
     lng: parseFloat(row.lng!),
   });
-
-  return {
-    point,
-    locationId: row.location_id,
-  };
 }
 
 async function getLocationIds(
@@ -247,13 +238,17 @@ async function getLocations(
     .orderBy(asc(hamLocation.id), asc(hamAddress.id), asc(hamStation.id));
 }
 
-function getMarkerData(flatLocations: FlatLocationDTO[], activeCallsign: string | null): Location[] {
+function getMarkerData(
+  flatLocations: FlatLocationDTO[],
+  activeCallsign: string | null,
+): { locations: Location[]; activeLocationId: number | undefined } {
   const locations: Location[] = [];
 
   let locationId: number = 0;
   let locationIdx: number = 0;
   let addressId: number = 0;
   let addressIdx: number = 0;
+  let activeLocationId = undefined;
 
   const addressNormalizer = getAddressNormalizer();
 
@@ -297,6 +292,10 @@ function getMarkerData(flatLocations: FlatLocationDTO[], activeCallsign: string 
       name: getStationName(flatLocation),
       operatorClass: flatLocation.operator_class ?? "",
     });
+
+    if (activeCallsign && activeCallsign === flatLocation.callsign) {
+      activeLocationId = flatLocation.id;
+    }
   });
 
   const stationSorter = getStationSorter();
@@ -313,7 +312,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[], activeCallsign: string 
     });
   });
 
-  return locations;
+  return { locations, activeLocationId };
 }
 
 function addressCleanup(addresses: Address[]) {
@@ -374,20 +373,29 @@ function getStationName(flatLocation: FlatLocationDTO): string {
   return name.join(" ");
 }
 
-function getStationSorter(): (stations: Station[], activeCallsign: string | null) => void {
+function getStationSorter(): (
+  stations: Station[],
+  activeCallsign: string | null,
+) => void {
   const rankings = new Map([
-    ['E', 1],
-    ['A', 2],
-    ['G', 3],
-    ['T', 4],
-    ['N', 5],
+    ["E", 1],
+    ["A", 2],
+    ["G", 3],
+    ["T", 4],
+    ["N", 5],
   ]);
 
   return (stations: Station[], activeCallsign: string | null): void => {
     stations.sort((a: Station, b: Station) => {
       // Put the active call at the top/ Otherwise sort by license class.
-      const rankA = (activeCallsign && a.callsign === activeCallsign) ? 0 : (rankings.get(a.operatorClass) ?? 999);
-      const rankB = (activeCallsign && b.callsign === activeCallsign) ? 0 : (rankings.get(b.operatorClass) ?? 999);
+      const rankA =
+        activeCallsign && a.callsign === activeCallsign
+          ? 0
+          : (rankings.get(a.operatorClass) ?? 999);
+      const rankB =
+        activeCallsign && b.callsign === activeCallsign
+          ? 0
+          : (rankings.get(b.operatorClass) ?? 999);
 
       if (rankA < rankB) {
         return -1;
@@ -428,7 +436,7 @@ function getAddressNormalizer(): (address: string) => string {
     map.push([item[0].toLowerCase(), item[1].toLowerCase()]);
   }
 
-  return ((address: string): string => {
+  return (address: string): string => {
     for (let idx = 0; idx < map.length; idx++) {
       const [long, short] = map[idx];
 
@@ -439,10 +447,8 @@ function getAddressNormalizer(): (address: string) => string {
     }
 
     // Remove period from the end. Replace multiple spaces with one.
-    address = address
-      .replace(/\.$/, '')
-      .replace(/\s+/g, ' ');
+    address = address.replace(/\.$/, "").replace(/\s+/g, " ");
 
     return address;
-  })
+  };
 }

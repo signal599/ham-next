@@ -30,9 +30,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await doQuery(query);
+    const response = await doQuery(query, p.get("init-call"));
     return NextResponse.json(response);
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Server error" },
+      { status: 500 },
+    );
   }
 }
