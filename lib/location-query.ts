@@ -255,6 +255,8 @@ function getMarkerData(flatLocations: FlatLocationDTO[], activeCallsign: string 
   let addressId: number = 0;
   let addressIdx: number = 0;
 
+  const addressNormalizer = getAddressNormalizer();
+
   flatLocations.forEach((flatLocation: FlatLocationDTO) => {
     if (flatLocation.id !== locationId) {
       const point: LatLng = roundPoint({
@@ -277,7 +279,7 @@ function getMarkerData(flatLocations: FlatLocationDTO[], activeCallsign: string 
     if (flatLocation.address_id !== addressId) {
       locations[locationIdx].addresses.push({
         id: flatLocation.address_id,
-        address1: flatLocation.address_line1 ?? "",
+        address1: addressNormalizer(flatLocation.address_line1 ?? ""),
         address2: flatLocation.address_line2 ?? "",
         city: flatLocation.city ?? "",
         state: flatLocation.state ?? "",
@@ -372,7 +374,7 @@ function getStationName(flatLocation: FlatLocationDTO): string {
   return name.join(" ");
 }
 
-function getStationSorter() {
+function getStationSorter(): (stations: Station[], activeCallsign: string | null) => void {
   const rankings = new Map([
     ['E', 1],
     ['A', 2],
@@ -398,4 +400,41 @@ function getStationSorter() {
       return 0;
     });
   };
+}
+
+function getAddressNormalizer(): (address: string) => string {
+  const map = [
+    ["Road", "Rd"],
+    ["Street", "St"],
+    ["Avenue", "Ave"],
+    ["Drive", "Dr"],
+    ["Lane", "Ln"],
+    ["Circle", "Cir"],
+  ];
+
+  const length = map.length;
+
+  for (let idx = 0; idx < length; idx++) {
+    const item = map[idx];
+    map.push([item[0].toUpperCase(), item[1].toUpperCase()]);
+    map.push([item[0].toLowerCase(), item[1].toLowerCase()]);
+  }
+
+  return ((address: string): string => {
+    for (let idx = 0; idx < map.length; idx++) {
+      const [long, short] = map[idx];
+
+      if (address.includes(` ${long}`)) {
+        address = address.replace(` ${long}`, ` ${short}`);
+        break;
+      }
+    }
+
+    // Remove period from the end. Replace multiple spaces with one.
+    address = address
+      .replace(/\.$/, '')
+      .replace(/\s+/g, ' ');
+
+    return address;
+  })
 }
