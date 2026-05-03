@@ -15,6 +15,7 @@ import {
   roundPoint,
 } from "./utils";
 import { getNeighboringGridSquares, GridSquareToLatLng } from "./gridsquares";
+import { GeocodeZipcode } from "./geocode-zipcode";
 
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
@@ -29,6 +30,7 @@ export async function doQuery(query: SearchQuery): Promise<LocationsResponse> {
   const locations = await getLocations(db, locationIds);
   const markerData = getMarkerData(locations);
   const gridSquares = getNeighboringGridSquares(center.lat, center.lng);
+  GeocodeZipcode('03086');
 
   return {
     center: center,
@@ -57,7 +59,7 @@ async function getMapCenterInfo(
       break;
 
     case "zipcode":
-      return { point: { lat: 42.801469, lng: -71.741511 } };
+      return { point: await GeocodeZipcode(query.value) };
       break;
 
     case "point":
