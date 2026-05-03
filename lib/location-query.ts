@@ -397,6 +397,14 @@ function getStationSorter(): (stations: Station[], activeCallsign: string | null
         return 1;
       }
 
+      if (a.callsign < b.callsign) {
+        return -1;
+      }
+
+      if (a.callsign > b.callsign) {
+        return 1;
+      }
+
       return 0;
     });
   };
