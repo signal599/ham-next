@@ -25,7 +25,7 @@ export function latLngToGridSquare(lat: number, lng: number): string {
 
 export function GridSquareToLatLng(grid: string): { lat: number; lng: number } {
   if (!/^[A-Ra-r]{2}[0-9]{2}[A-Xa-x]{2}$/.test(grid)) {
-    throw new Error("Invalid Maidenhead grid locator");
+    throw new Error("Invalid gridsquare code");
   }
 
   const g = grid.toUpperCase();

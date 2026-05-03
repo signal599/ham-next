@@ -1,62 +1,67 @@
 import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
 import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
-import { Address, HamInfoResponse, LatLng, Location, LocationsResponse, SearchQuery, Station } from "./map-types";
-import { addressHasLowerCase, buildAddressKey, MathLib, roundPoint } from "./utils";
+import {
+  Address,
+  LatLng,
+  Location,
+  LocationsResponse,
+  SearchQuery,
+  Station,
+} from "./map-types";
+import {
+  addressHasLowerCase,
+  buildAddressKey,
+  roundPoint,
+} from "./utils";
 import { getNeighboringGridSquares, GridSquareToLatLng } from "./gridsquares";
 
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
 
-export async function doQuery(query: SearchQuery): Promise<HamInfoResponse> {
+export async function doQuery(query: SearchQuery): Promise<LocationsResponse> {
   const db = drizzle(process.env.DATABASE_URL!);
   const centerInfo = await getMapCenterInfo(db, query);
 
-  if (!centerInfo) {
-    return {
-      error: 'Not found'
-    }
-  }
-
   const center = centerInfo.point;
-
-  const locationIds = await getLocationIds(
-    db,
-    center.lat,
-    center.lng,
-    RADIUS,
-  );
+  const locationIds = await getLocationIds(db, center.lat, center.lng, RADIUS);
 
   const locations = await getLocations(db, locationIds);
   const markerData = getMarkerData(locations);
   const gridSquares = getNeighboringGridSquares(center.lat, center.lng);
 
   return {
-    data: {
-      center: center,
-      gridsquares: gridSquares,
-      locations: markerData,
-      activeLocationId: centerInfo.locationId,
-    }
-  }
+    center: center,
+    gridsquares: gridSquares,
+    locations: markerData,
+    activeLocationId: centerInfo.locationId,
+  };
 }
 
-async function getMapCenterInfo(db: MySql2Database, query: SearchQuery): Promise<{point: LatLng, locationId?: number} | null> {
+type CenterInfo = {
+  point: LatLng;
+  locationId?: number;
+};
+
+async function getMapCenterInfo(
+  db: MySql2Database,
+  query: SearchQuery,
+): Promise<CenterInfo> {
   switch (query.type) {
     case "callsign":
       return await getCallsignCoords(db, query.value);
       break;
 
     case "gridsquare":
-      return {point: GridSquareToLatLng(query.value)};
+      return { point: GridSquareToLatLng(query.value) };
       break;
 
     case "zipcode":
-      return {point: { lat: 42.801469, lng: -71.741511 }};
+      return { point: { lat: 42.801469, lng: -71.741511 } };
       break;
 
     case "point":
-      return {point: { lat: query.lat, lng: query.lng }};
+      return { point: { lat: query.lat, lng: query.lng } };
       break;
   }
 }
@@ -64,7 +69,7 @@ async function getMapCenterInfo(db: MySql2Database, query: SearchQuery): Promise
 async function getCallsignCoords(
   db: MySql2Database,
   callsign: string,
-): Promise<{point: LatLng, locationId: number} | null> {
+): Promise<CenterInfo> {
   const rows = await db
     .select({
       location_id: hamLocation.id,
@@ -74,14 +79,16 @@ async function getCallsignCoords(
     .from(hamStation)
     .innerJoin(hamAddress, eq(hamAddress.hash, hamStation.addressHash))
     .innerJoin(hamLocation, eq(hamLocation.id, hamAddress.locationId))
-    .where(and(
-      eq(hamStation.callsign, callsign),
-      isNotNull(hamLocation.latitude),
-      isNotNull(hamLocation.longitude)
-    ));
+    .where(
+      and(
+        eq(hamStation.callsign, callsign),
+        isNotNull(hamLocation.latitude),
+        isNotNull(hamLocation.longitude),
+      ),
+    );
 
   if (!rows.length) {
-    return null;
+    throw new Error(`We have no record of callsign ${callsign}`);
   }
 
   const row = rows[0];
@@ -94,7 +101,7 @@ async function getCallsignCoords(
   return {
     point,
     locationId: row.location_id,
-  }
+  };
 }
 
 async function getLocationIds(
@@ -249,7 +256,10 @@ function getMarkerData(flatLocations: FlatLocationDTO[]): Location[] {
 
   flatLocations.forEach((flatLocation: FlatLocationDTO) => {
     if (flatLocation.id !== locationId) {
-      const point: LatLng = roundPoint({lat: parseFloat(flatLocation.lat!), lng: parseFloat(flatLocation.lng!)});
+      const point: LatLng = roundPoint({
+        lat: parseFloat(flatLocation.lat!),
+        lng: parseFloat(flatLocation.lng!),
+      });
 
       locations.push({
         id: flatLocation.id,

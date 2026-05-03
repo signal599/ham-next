@@ -45,14 +45,3 @@ export type LocationsResponse = {
   gridsquares: GridSquare[]
   activeLocationId?: number,
 }
-
-export type HamInfoQuery =
-  | { type: 'c'; value: string }
-  | { type: 'g'; value: string }
-  | { type: 'z'; value: string }
-  | { type: 'latlng'; value: string}
-
-export type HamInfoResponse = {
-  data?: LocationsResponse
-  error?: string
-}

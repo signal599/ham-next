@@ -10,7 +10,6 @@ import {
   Location,
   LocationsResponse,
   LatLng,
-  HamInfoResponse,
 } from "@/lib/map-types";
 import { queryToPath } from "@/lib/parse-slug";
 import { roundPoint } from "@/lib/utils";
@@ -44,14 +43,13 @@ export default function MapPage({ initialQuery }: Props) {
     try {
       const params = buildApiParams(q, center);
       const res = await fetch(`/api/map-query?${params}`);
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const infoResponse: HamInfoResponse = await res.json();
 
-      if (infoResponse.error) {
-        throw new Error(infoResponse.error);
+      if (!res.ok) {
+        const body = await res.json();
+        throw new Error(body.error);
       }
 
-      const data: LocationsResponse = infoResponse.data!;
+      const data: LocationsResponse = await res.json();
 
       // Only update center on the initial query fetch, not on bounds-driven
       // re-fetches — we don't want the map to jump when the user pans
@@ -62,6 +60,7 @@ export default function MapPage({ initialQuery }: Props) {
 
       setLocations(data.locations);
       setGridSquares(data.gridsquares);
+
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {

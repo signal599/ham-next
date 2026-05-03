@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { doQuery } from "@/lib/map-query";
 import { SearchQuery } from "@/lib/map-types";
-import { doQuery as doLocQuery } from "@/lib/location-query";
+import { doQuery } from "@/lib/location-query";
 
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams;
@@ -31,10 +30,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const newResponse = await doLocQuery(query);
-//    const response = await doQuery(query);
-    return NextResponse.json(newResponse);
+    const response = await doQuery(query);
+    return NextResponse.json(response);
   } catch (e) {
-    return NextResponse.json({ error: "Query failed" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Server error' }, { status: 500 });
   }
 }
