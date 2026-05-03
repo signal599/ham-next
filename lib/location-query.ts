@@ -1,6 +1,7 @@
 import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
 import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
-import { drizzle, MySql2Database } from "drizzle-orm/mysql2";
+import { MySql2Database } from "drizzle-orm/mysql2";
+import { db as dbFromPool } from '@/lib/db-pool';
 import {
   Address,
   LatLng,
@@ -20,12 +21,10 @@ export async function doQuery(
   query: SearchQuery,
   initialCallsign: string | null,
 ): Promise<LocationsResponse> {
-  const db = drizzle(process.env.DATABASE_URL!);
-  const center = await getMapCenterInfo(db, query);
 
-  const locationIds = await getLocationIds(db, center.lat, center.lng, RADIUS);
-
-  const flatLocations = await getLocations(db, locationIds);
+  const center = await getMapCenterInfo(dbFromPool, query);
+  const locationIds = await getLocationIds(dbFromPool, center.lat, center.lng, RADIUS);
+  const flatLocations = await getLocations(dbFromPool, locationIds);
   const { locations, activeLocationId } = getMarkerData(
     flatLocations,
     initialCallsign,

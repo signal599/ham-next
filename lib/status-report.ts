@@ -1,8 +1,7 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import { sql, gt, notInArray, and } from "drizzle-orm";
 import { hamAddress } from "@/src/db/schema";
-
-const db = drizzle(process.env.DATABASE_URL!);
+import { db } from '@/lib/db-pool';
 
 export async function getStatusData() {
   const rows = await db
