@@ -278,7 +278,7 @@ function getMarkerData(
         address2: flatLocation.address_line2 ?? "",
         city: flatLocation.city ?? "",
         state: flatLocation.state ?? "",
-        zip: flatLocation.zip ?? "",
+        zip: (flatLocation.zip ?? "").split("-")[0], // Only use 5 digit zip.
         stations: [],
       });
 
