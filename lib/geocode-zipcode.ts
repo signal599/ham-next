@@ -10,14 +10,14 @@ export async function GeocodeZipcode(zipcode: string): Promise<LatLng> {
   const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?${params}`);
 
   if (!response.ok) {
-    throw new Error(`${zipcode} is not a valid zipcode`);
+    throw new Error(`for-user: ${zipcode} is not a valid zipcode`);
   }
 
   const data = await response.json();
   const location = data.results[0]?.geometry?.location;
 
   if (!location) {
-    throw new Error(`Unable to get location for zipcode ${zipcode}`);
+    throw new Error(`for-user: Unable to get location for zipcode ${zipcode}`);
   }
 
   return location;

@@ -85,7 +85,7 @@ async function getCallsignCoords(
     );
 
   if (!rows.length) {
-    throw new Error(`We have no record of callsign ${callsign}`);
+    throw new Error(`for-user: We have no record of callsign ${callsign}`);
   }
 
   const row = rows[0];
