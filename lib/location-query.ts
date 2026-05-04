@@ -1,7 +1,7 @@
 import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
 import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import { MySql2Database } from "drizzle-orm/mysql2";
-import { db as dbFromPool } from '@/lib/db-pool';
+import { db as dbFromPool } from "@/lib/db-pool";
 import {
   Address,
   LatLng,
@@ -21,9 +21,13 @@ export async function doQuery(
   query: SearchQuery,
   initialCallsign: string | null,
 ): Promise<LocationsResponse> {
-
   const center = await getMapCenterInfo(dbFromPool, query);
-  const locationIds = await getLocationIds(dbFromPool, center.lat, center.lng, RADIUS);
+  const locationIds = await getLocationIds(
+    dbFromPool,
+    center.lat,
+    center.lng,
+    RADIUS,
+  );
   const flatLocations = await getLocations(dbFromPool, locationIds);
   const { locations, activeLocationId } = getMarkerData(
     flatLocations,
@@ -396,21 +400,9 @@ function getStationSorter(): (
           ? 0
           : (rankings.get(b.operatorClass) ?? 999);
 
-      if (rankA < rankB) {
-        return -1;
-      }
-
-      if (rankB > rankA) {
-        return 1;
-      }
-
-      if (a.callsign < b.callsign) {
-        return -1;
-      }
-
-      if (a.callsign > b.callsign) {
-        return 1;
-      }
+      if (rankA !== rankB) return rankA - rankB;
+      if (a.callsign < b.callsign) return -1;
+      if (a.callsign > b.callsign) return 1;
 
       return 0;
     });
