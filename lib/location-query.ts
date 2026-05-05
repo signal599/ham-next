@@ -17,6 +17,11 @@ import { GeocodeZipcode } from "./geocode-zipcode";
 const MILES_PER_DEGREE = 69.0;
 const RADIUS = 20;
 
+const GEOCODE_STATUS_PENDING = 0;
+const GEOCODE_STATUS_SUCCESS = 1;
+const GEOCODE_STATUS_NOT_FOUND = 2;
+const GEOCODE_STATUS_PO_BOX = 3;
+
 export async function doQuery(
   query: SearchQuery,
   initialCallsign: string | null,
@@ -75,17 +80,12 @@ async function getCallsignCoords(
       location_id: hamLocation.id,
       lat: hamLocation.latitude,
       lng: hamLocation.longitude,
+      geocodeStatus: hamAddress.geocodeStatus,
     })
     .from(hamStation)
     .innerJoin(hamAddress, eq(hamAddress.hash, hamStation.addressHash))
-    .innerJoin(hamLocation, eq(hamLocation.id, hamAddress.locationId))
-    .where(
-      and(
-        eq(hamStation.callsign, callsign),
-        isNotNull(hamLocation.latitude),
-        isNotNull(hamLocation.longitude),
-      ),
-    );
+    .leftJoin(hamLocation, eq(hamLocation.id, hamAddress.locationId))
+    .where(eq(hamStation.callsign, callsign));
 
   if (!rows.length) {
     throw new Error(`for-user: We have no record of callsign ${callsign}`);
@@ -93,9 +93,33 @@ async function getCallsignCoords(
 
   const row = rows[0];
 
+  switch (row.geocodeStatus) {
+    case GEOCODE_STATUS_PENDING:
+      throw new Error(
+        `for-user: The address for ${callsign} has not been geocoded yet.`,
+      );
+      break;
+
+    case GEOCODE_STATUS_NOT_FOUND:
+      throw new Error(
+        `for-user: The address for ${callsign} could not be geocoded.`,
+      );
+      break;
+
+    case GEOCODE_STATUS_PO_BOX:
+      throw new Error(`for-user: The address for ${callsign} is a PO Box.`);
+      break;
+  }
+
+  if (row.geocodeStatus !== GEOCODE_STATUS_SUCCESS || row.lat === null || row.lng === null) {
+    throw new Error(
+      `for-user: The address for ${callsign} could not be geocoded.`,
+    );
+  }
+
   return roundPoint({
-    lat: parseFloat(row.lat!),
-    lng: parseFloat(row.lng!),
+    lat: parseFloat(row.lat),
+    lng: parseFloat(row.lng),
   });
 }
 
