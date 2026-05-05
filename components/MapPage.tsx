@@ -45,10 +45,7 @@ export default function MapPage({ initialQuery }: Props) {
       const res = await fetch(`/api/map-query?${params}`);
 
       if (!res.ok) {
-        const error = (await res.json()).error;
-        throw new Error(
-          error.startsWith('for-user:') ? error.substring(9) : 'Something went wrong',
-        );
+        throw new Error((await res.json()).error);
       }
 
       const data: LocationsResponse = await res.json();

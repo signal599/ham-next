@@ -33,9 +33,12 @@ export async function GET(req: NextRequest) {
     const response = await doQuery(query, p.get("init-call"));
     return NextResponse.json(response);
   } catch (e) {
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Server error" },
-      { status: 500 },
-    );
+
+    // Don't show system errors.
+    const message = e instanceof Error && e.message.startsWith('for-user:')
+      ? e.message.substring(9)
+      : "Something went wrong.";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
