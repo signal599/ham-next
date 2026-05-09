@@ -127,22 +127,22 @@ export default function MapPage({ initialQuery }: Props) {
 function buildApiParams(query: SearchQuery, center?: LatLng): URLSearchParams {
   const p = new URLSearchParams();
 
-  const path = window.location.pathname;
-
-  const parts = path.split("/");
-  if (parts.length === 3 || (parts.length === 4 && parts[2] === "c")) {
-    // Use this to popup the infowindow automatically on a callsign query.
-    // This call is moved to the top of the list of a multi-call address.
-    // Getting it here rather than from the type parameters maintains the
-    // order even after a move.
-    p.set("init-call", parts[parts.length - 1]);
-  }
-
   if (center) {
     // The map has been moved.
     p.set("type", "point");
     p.set("lat", center.lat.toString());
     p.set("lng", center.lng.toString());
+
+    const parts = window.location.pathname.split("/");
+
+    if (parts.length === 3 || (parts.length === 4 && parts[2] === "c")) {
+      // Use this to popup the infowindow automatically on a callsign query.
+      // This call is moved to the top of the list of a multi-call address.
+      // Getting it here rather than from the type parameters maintains the
+      // order even after a move.
+      p.set("init-call", parts[parts.length - 1]);
+    }
+
     return p;
   }
 

@@ -30,14 +30,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await doQuery(query, p.get("init-call"));
+    const initialCallsign =
+      query.type === "callsign" ? query.value : p.get("init-call");
+
+    const response = await doQuery(query, initialCallsign);
     return NextResponse.json(response);
   } catch (e) {
-
     // Don't show system errors.
-    const message = e instanceof Error && e.message.startsWith('for-user:')
-      ? e.message.substring(9)
-      : "Something went wrong.";
+    const message =
+      e instanceof Error && e.message.startsWith("for-user:")
+        ? e.message.substring(9)
+        : "Something went wrong.";
 
     return NextResponse.json({ error: message }, { status: 500 });
   }
