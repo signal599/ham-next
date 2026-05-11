@@ -441,6 +441,7 @@ function getAddressNormalizer(): (address: string) => string {
     ["Drive", "Dr"],
     ["Lane", "Ln"],
     ["Circle", "Cir"],
+    ["Court", "Ct"],
   ];
 
   const length = map.length;
