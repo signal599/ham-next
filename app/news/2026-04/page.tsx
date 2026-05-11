@@ -16,7 +16,7 @@ export default function Page() {
         and PHP for many years so this is a new experience for me. Next.js is a
         combination of <a href="http://nodejs.org">Node.js</a> on the backend
         and <a href="https://react.dev">React</a> on the frontend and lots of
-        magic to make it all work together. The language is TypeScript. Most of
+        magic to make it all work together. The language is <a href="https://www.typescriptlang.org">TypeScript</a>. Most of
         the backend is still happening in Drupal but I intend to move more of it
         into Next.js as time permits. A friend named Claude is providing some
         help along the way. <span className="text-2xl">🙂</span>
