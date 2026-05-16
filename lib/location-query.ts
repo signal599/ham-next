@@ -14,8 +14,8 @@ import { addressHasLowerCase, buildAddressKey, roundPoint } from "./utils";
 import { getNeighboringGridSquares, GridSquareToLatLng } from "./gridsquares";
 import { GeocodeZipcode } from "./geocode-zipcode";
 
-const MILES_PER_DEGREE = 69.0;
-const RADIUS = 20;
+const METERS_PER_LAT_DEGREE = 111132;
+const RADIUS = 32187; // 20 miles in meters.
 
 const GEOCODE_STATUS_PENDING = 0;
 const GEOCODE_STATUS_SUCCESS = 1;
@@ -111,7 +111,11 @@ async function getCallsignCoords(
       break;
   }
 
-  if (row.geocodeStatus !== GEOCODE_STATUS_SUCCESS || row.lat === null || row.lng === null) {
+  if (
+    row.geocodeStatus !== GEOCODE_STATUS_SUCCESS ||
+    row.lat === null ||
+    row.lng === null
+  ) {
     throw new Error(
       `for-user: The address for ${callsign} could not be geocoded.`,
     );
@@ -131,6 +135,7 @@ async function getLocationIds(
 ): Promise<number[]> {
   const locationAlias = "ham_location";
   const distanceFormula = buildDistanceFormula(lat, lng, locationAlias);
+
   const boundingBoxFormula = buildBoundingBoxFormula(
     lat,
     lng,
@@ -161,12 +166,12 @@ function buildBoundingBoxFormula(
   radius: number,
   tableAlias: string,
 ): string {
-  const latDelta = radius / MILES_PER_DEGREE;
+  const latDelta = radius / METERS_PER_LAT_DEGREE;
   const latFrom = lat - latDelta;
   const latTo = lat + latDelta;
 
   const lngDelta =
-    radius / (MILES_PER_DEGREE * Math.cos(degreesToRadians(lat)));
+    radius / (METERS_PER_LAT_DEGREE * Math.cos(degreesToRadians(lat)));
   const lngFrom = lng - lngDelta;
   const lngTo = lng + lngDelta;
 
@@ -178,26 +183,11 @@ function buildDistanceFormula(
   lng1: number,
   tableAlias: string,
 ): string {
-  const formula = `unitFactor *
-  DEGREES(
-      ATAN2(
-        SQRT(
-          POW(COS(RADIANS(lat2)) * SIN(RADIANS(lng2 - lng1)), 2) +
-          POW(COS(RADIANS(lat1)) * SIN(RADIANS(lat2)) -
-              (SIN(RADIANS(lat1)) * COS(RADIANS(lat2)) *
-                COS(RADIANS(lng2 - lng1))), 2)),
-        SIN(RADIANS(lat1)) * SIN(RADIANS(lat2)) +
-        COS(RADIANS(lat1)) * COS(RADIANS(lat2)) * COS(RADIANS(lng2 - lng1))))`;
-
-  lat1 = degreesToRadians(lat1);
-
-  return formula
-    .replaceAll("unitFactor", MILES_PER_DEGREE.toString())
-    .replaceAll("COS(RADIANS(lat1))", Math.cos(lat1).toString())
-    .replaceAll("SIN(RADIANS(lat1))", Math.sin(lat1).toString())
-    .replaceAll("lng1", lng1.toString())
-    .replaceAll("lat2", `${tableAlias}.latitude`)
-    .replaceAll("lng2", `${tableAlias}.longitude`);
+  return `
+    ST_Distance_Sphere(
+    ST_GeomFromText('POINT(${lat1} ${lng1})', 4326),
+    ST_GeomFromText(CONCAT('POINT(', ${tableAlias}.latitude, ' ', ${tableAlias}.longitude, ')'), 4326)
+  )`;
 }
 
 function degreesToRadians(deg: number): number {

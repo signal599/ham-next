@@ -9,7 +9,7 @@ export default function Page() {
       <p>
         All the live code involved in serving pages to visitors is now in
         TypeScript / Next.js. SQL queries use{" "}
-        <a href="https://orm.drizzle.team">Drizzle ORM</a>.
+        <a href="https://orm.drizzle.team">Drizzle</a>.
       </p>
       <p>
         The only Drupal / PHP code left is the weekly FCC updates and the
