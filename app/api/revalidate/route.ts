@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
 
   revalidatePath('/status');
   revalidatePath('/map', 'layout');
+  revalidatePath('/api/map-query');
 
   return NextResponse.json({ revalidated: true, now: Date.now() });
 }
