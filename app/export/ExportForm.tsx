@@ -88,7 +88,6 @@ export default function ExportForm() {
               className="input input-bordered w-32 uppercase"
               value={state}
               onChange={(e) => setState(e.target.value)}
-              placeholder="e.g. NH"
               maxLength={2}
             />
             {stateIsWhole && (
@@ -101,7 +100,7 @@ export default function ExportForm() {
             </p>
           </div>
 
-          <p className="text-sm text-base-content/60">
+          <p className="text-sm font-medium">
             Enter either a state or zip code, but not both.
           </p>
 
@@ -113,7 +112,6 @@ export default function ExportForm() {
               className="input input-bordered w-36"
               value={zip}
               onChange={(e) => setZip(e.target.value)}
-              placeholder="e.g. 03086"
               maxLength={5}
               inputMode="numeric"
             />
@@ -122,32 +120,35 @@ export default function ExportForm() {
 
           <div className="divider my-0" />
 
-          <div className="flex gap-6">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="delimiter" className="text-sm font-medium">Delimiter</label>
-              <input
-                id="delimiter"
-                type="text"
-                className="input input-bordered w-20"
-                value={delimiter}
-                onChange={(e) => setDelimiter(e.target.value.slice(-1))}
-                maxLength={1}
-                required
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-6">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="delimiter" className="text-sm font-medium">Delimiter</label>
+                <input
+                  id="delimiter"
+                  type="text"
+                  className="input input-bordered w-20"
+                  value={delimiter}
+                  onChange={(e) => setDelimiter(e.target.value.slice(-1))}
+                  maxLength={1}
+                  required
+                />
+              </div>
 
-            <div className="flex flex-col gap-1">
-              <label htmlFor="enclosure" className="text-sm font-medium">Enclosure</label>
-              <input
-                id="enclosure"
-                type="text"
-                className="input input-bordered w-20"
-                value={enclosure}
-                onChange={(e) => setEnclosure(e.target.value.slice(-1))}
-                maxLength={1}
-                required
-              />
+              <div className="flex flex-col gap-1">
+                <label htmlFor="enclosure" className="text-sm font-medium">Enclosure</label>
+                <input
+                  id="enclosure"
+                  type="text"
+                  className="input input-bordered w-20"
+                  value={enclosure}
+                  onChange={(e) => setEnclosure(e.target.value.slice(-1))}
+                  maxLength={1}
+                  required
+                />
+              </div>
             </div>
+            <p className="text-xs text-base-content/50">These can usually be left at defaults.</p>
           </div>
 
           {error && (
