@@ -1,7 +1,6 @@
 import { parseSlug } from "@/lib/parse-slug";
 import MapPage from "@/components/MapPage";
 import PageLayout from "@/components/page-layout";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
 
@@ -27,12 +26,6 @@ export default async function MapSlugPage({ params }: Props) {
 
   return (
     <PageLayout title="Amateur Radio License Map" extra_classes="sm:pr-28">
-
-      {isAuthenticated && (
-        <div className="flex justify-end -mt-5 mb-2">
-          <Link href="/export" className="btn btn-sm btn-outline">Export to file</Link>
-        </div>
-      )}
 
       <div className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-5 mb-5">
         <input type="checkbox" />
@@ -74,7 +67,7 @@ export default async function MapSlugPage({ params }: Props) {
         </div>
       </div>
 
-      <MapPage initialQuery={query} />
+      <MapPage initialQuery={query} showExportLink={isAuthenticated} />
     </PageLayout>
   );
 }

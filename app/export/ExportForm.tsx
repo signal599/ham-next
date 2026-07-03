@@ -17,7 +17,7 @@ export default function ExportForm() {
     const s = state.trim().toUpperCase();
     const z = zip.trim();
 
-    if (s && z) return "Specify either State or Zip, not both.";
+    if (s && z) return "Specify either State or Zip but not both.";
     if (!s && !z) return "Either State or Zip is required.";
     if (s && !/^([A-Z]{2}|\*\*)$/.test(s)) return "State must be a two-letter abbreviation (e.g. NH) or ** for the whole country.";
     if (z && !/^\d{5}$/.test(z)) return "Zip must be exactly 5 digits.";
@@ -80,56 +80,51 @@ export default function ExportForm() {
       <div className="card-body">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-          <div className="form-control">
-            <label className="label" htmlFor="state">
-              <span className="label-text">State</span>
-              <span className="label-text-alt text-base-content/50">Optional</span>
-            </label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="state" className="text-sm font-medium">State</label>
             <input
               id="state"
               type="text"
               className="input input-bordered w-32 uppercase"
               value={state}
-              onChange={(e) => { setState(e.target.value); setZip(""); }}
+              onChange={(e) => setState(e.target.value)}
               placeholder="e.g. NH"
               maxLength={2}
             />
             {stateIsWhole && (
-              <p className="text-warning text-sm mt-1">
+              <p className="text-warning text-sm">
                 ** will export the entire country. Make sure this is intentional.
               </p>
             )}
-            <p className="text-xs text-base-content/50 mt-1">
+            <p className="text-xs text-base-content/50">
               Two-letter abbreviation, or <strong>**</strong> to export the whole country.
             </p>
           </div>
 
-          <div className="divider my-0 text-xs text-base-content/40">or</div>
+          <p className="text-sm text-base-content/60">
+            Enter either a state or zip code, but not both.
+          </p>
 
-          <div className="form-control">
-            <label className="label" htmlFor="zip">
-              <span className="label-text">Zip Code</span>
-              <span className="label-text-alt text-base-content/50">Optional</span>
-            </label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="zip" className="text-sm font-medium">Zip Code</label>
             <input
               id="zip"
               type="text"
               className="input input-bordered w-36"
               value={zip}
-              onChange={(e) => { setZip(e.target.value); setState(""); }}
+              onChange={(e) => setZip(e.target.value)}
               placeholder="e.g. 03086"
               maxLength={5}
               inputMode="numeric"
             />
+            <p className="text-xs text-base-content/50">Five digit zip code.</p>
           </div>
 
           <div className="divider my-0" />
 
           <div className="flex gap-6">
-            <div className="form-control">
-              <label className="label" htmlFor="delimiter">
-                <span className="label-text">Delimiter</span>
-              </label>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="delimiter" className="text-sm font-medium">Delimiter</label>
               <input
                 id="delimiter"
                 type="text"
@@ -141,10 +136,8 @@ export default function ExportForm() {
               />
             </div>
 
-            <div className="form-control">
-              <label className="label" htmlFor="enclosure">
-                <span className="label-text">Enclosure</span>
-              </label>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="enclosure" className="text-sm font-medium">Enclosure</label>
               <input
                 id="enclosure"
                 type="text"

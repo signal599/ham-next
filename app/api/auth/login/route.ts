@@ -38,7 +38,12 @@ export async function POST(req: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
   const magicLink = `${baseUrl}/api/auth/verify?token=${token}`;
 
-  await sendMagicLinkEmail(email, magicLink);
+  try {
+    await sendMagicLinkEmail(email, magicLink);
+  } catch (err) {
+    console.error("Failed to send magic link email:", err);
+    return NextResponse.json({ error: "Failed to send email. Please try again later." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

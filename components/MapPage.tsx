@@ -16,9 +16,10 @@ import { roundPoint } from "@/lib/utils";
 
 interface Props {
   initialQuery: SearchQuery | null;
+  showExportLink?: boolean;
 }
 
-export default function MapPage({ initialQuery }: Props) {
+export default function MapPage({ initialQuery, showExportLink }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState<SearchQuery | null>(initialQuery);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(
@@ -105,6 +106,10 @@ export default function MapPage({ initialQuery }: Props) {
           {loading && <p className="text-sm m-0 p-0">Loading...</p>}
         </div>
       </div>
+
+      {showExportLink && (
+        <a href="/export" className="text-sm text-blue-600 hover:underline -mt-4">Export to file</a>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
