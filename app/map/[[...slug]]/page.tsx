@@ -2,6 +2,8 @@ import { parseSlug } from "@/lib/parse-slug";
 import MapPage from "@/components/MapPage";
 import PageLayout from "@/components/page-layout";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
 
 interface Props {
   params: { slug?: string[] };
@@ -10,8 +12,27 @@ interface Props {
 export default async function MapSlugPage({ params }: Props) {
   const { slug } = await params;
   const query = parseSlug(slug);
+
+  let isAuthenticated = false;
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+    if (token) {
+      await verifySessionToken(token);
+      isAuthenticated = true;
+    }
+  } catch {
+    // not authenticated
+  }
+
   return (
     <PageLayout title="Amateur Radio License Map" extra_classes="sm:pr-28">
+
+      {isAuthenticated && (
+        <div className="flex justify-end -mt-5 mb-2">
+          <Link href="/export" className="btn btn-sm btn-outline">Export to file</Link>
+        </div>
+      )}
 
       <div className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-5 mb-5">
         <input type="checkbox" />

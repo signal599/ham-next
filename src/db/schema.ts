@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, primaryKey, int, varchar, unique, tinyint, longtext, bigint, decimal, smallint, char, text, float, double } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, index, primaryKey, int, varchar, unique, tinyint, longtext, bigint, decimal, smallint, char, text, float, double, datetime } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const batch = mysqlTable("batch", {
@@ -1550,4 +1550,43 @@ export const watchdog = mysqlTable("watchdog", {
 	index("type").on(table.type),
 	index("uid").on(table.uid),
 	primaryKey({ columns: [table.wid], name: "watchdog_wid"}),
+]);
+
+export const appUsers = mysqlTable("app_users", {
+	id: int({ unsigned: true }).autoincrement().notNull(),
+	email: varchar({ length: 254 }).notNull(),
+	createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	primaryKey({ columns: [table.id], name: "app_users_id" }),
+	unique("app_users_email").on(table.email),
+]);
+
+export const magicLinkTokens = mysqlTable("magic_link_tokens", {
+	id: int({ unsigned: true }).autoincrement().notNull(),
+	email: varchar({ length: 254 }).notNull(),
+	token: varchar({ length: 64 }).notNull(),
+	expiresAt: datetime("expires_at").notNull(),
+	usedAt: datetime("used_at"),
+	createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	primaryKey({ columns: [table.id], name: "magic_link_tokens_id" }),
+	unique("magic_link_tokens_token").on(table.token),
+	index("magic_link_tokens_email").on(table.email),
+]);
+
+export const exportQueue = mysqlTable("export_queue", {
+	id: int({ unsigned: true }).autoincrement().notNull(),
+	email: varchar({ length: 254 }).notNull(),
+	state: varchar({ length: 2 }),
+	zip: varchar({ length: 5 }),
+	delimiter: varchar({ length: 1 }).notNull(),
+	enclosure: varchar({ length: 1 }).notNull(),
+	status: varchar({ length: 20 }).notNull().default("pending"),
+	fileName: varchar("file_name", { length: 255 }),
+	createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+	processedAt: datetime("processed_at"),
+}, (table) => [
+	primaryKey({ columns: [table.id], name: "export_queue_id" }),
+	index("export_queue_status").on(table.status),
+	index("export_queue_email").on(table.email),
 ]);

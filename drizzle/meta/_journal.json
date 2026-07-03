@@ -15,6 +15,13 @@
       "when": 1772318383899,
       "tag": "0001_equal_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1783038767681,
+      "tag": "0002_familiar_ultragirl",
+      "breakpoints": true
     }
   ]
 }
