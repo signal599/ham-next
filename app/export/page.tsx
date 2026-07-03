@@ -29,14 +29,6 @@ export default async function ExportPage() {
       </div>
 
       <ExportForm />
-
-      <div className="mt-6">
-        <form action="/api/auth/logout" method="POST">
-          <button type="submit" className="btn btn-ghost btn-sm">
-            Sign out
-          </button>
-        </form>
-      </div>
     </div>
   );
 }

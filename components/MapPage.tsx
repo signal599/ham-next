@@ -108,7 +108,7 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
       </div>
 
       {showExportLink && (
-        <a href="/export" className="text-sm text-blue-600 hover:underline -mt-4">Export to file</a>
+        <a href="/export" className="text-sm text-blue-600 hover:underline -mt-2">Export to file</a>
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
