@@ -1581,7 +1581,7 @@ export const exportQueue = mysqlTable("export_queue", {
 	zip: varchar({ length: 5 }),
 	delimiter: varchar({ length: 1 }).notNull(),
 	enclosure: varchar({ length: 1 }).notNull(),
-	status: varchar({ length: 20 }).notNull().default("pending"),
+	status: int().notNull().default(0),
 	fileName: varchar("file_name", { length: 255 }),
 	createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 	processedAt: datetime("processed_at"),
