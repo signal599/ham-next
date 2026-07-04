@@ -1584,6 +1584,7 @@ export const exportQueue = mysqlTable("export_queue", {
 	status: int().notNull().default(0),
 	fileName: varchar("file_name", { length: 255 }),
 	createdAt: datetime("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+	startedAt: datetime("started_at"),
 	processedAt: datetime("processed_at"),
 }, (table) => [
 	primaryKey({ columns: [table.id], name: "export_queue_id" }),
