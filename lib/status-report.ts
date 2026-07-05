@@ -1,4 +1,3 @@
-import { drizzle } from "drizzle-orm/mysql2";
 import { sql, gt, notInArray, and } from "drizzle-orm";
 import { hamAddress } from "@/src/db/schema";
 import { db } from '@/lib/db-pool';
