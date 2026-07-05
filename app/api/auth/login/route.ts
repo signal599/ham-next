@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   await db.insert(magicLinkTokens).values({ email, token, expiresAt });
 
-  const magicLink = `${process.env.BASE_URL}/api/auth/verify?token=${token}`;
+  const magicLink = `${req.nextUrl.origin}/api/auth/verify?token=${token}`;
 
   try {
     await sendMagicLinkEmail(email, magicLink);
