@@ -1,8 +1,14 @@
+import { unstable_cache } from "next/cache";
 import { sql, gt, notInArray, and } from "drizzle-orm";
 import { hamAddress } from "@/src/db/schema";
 import { db } from '@/lib/db-pool';
 
-export async function getStatusData() {
+export const getStatusData = unstable_cache(fetchStatusData, ["status-report"], {
+  tags: ["status"],
+  revalidate: 3600,
+});
+
+async function fetchStatusData() {
   const rows = await db
     .select({
       state: hamAddress.addressAdministrativeArea,
