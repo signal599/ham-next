@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
 
   if (!token) {
-    return NextResponse.redirect(new URL("/login?error=invalid", req.nextUrl));
+    return NextResponse.redirect(new URL("/login?error=invalid", process.env.BASE_URL));
   }
 
   const now = new Date();
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     .limit(1);
 
   if (!record) {
-    return NextResponse.redirect(new URL("/login?error=invalid", req.nextUrl));
+    return NextResponse.redirect(new URL("/login?error=invalid", process.env.BASE_URL));
   }
 
   await db
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
   const sessionToken = await signSessionToken(record.email);
 
-  const response = NextResponse.redirect(new URL("/map", req.nextUrl));
+  const response = NextResponse.redirect(new URL("/map", process.env.BASE_URL));
   response.cookies.set(COOKIE_NAME, sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

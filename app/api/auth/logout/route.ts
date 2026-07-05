@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAME } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const response = NextResponse.redirect(new URL("/map", req.nextUrl));
+  const response = NextResponse.redirect(new URL("/map", process.env.BASE_URL));
   response.cookies.delete(COOKIE_NAME);
   return response;
 }
