@@ -7,8 +7,7 @@ export default function Page() {
   return (
     <PageLayout title="News and Info: July 2027">
       <p>
-        The whole site is now written in TypeScript. It has been rewritten and migrated from Drupal which is in PHP. There are now two applications.
-        <a href="https://github.com/signal599/ham-next">Ham-next</a> is the Next.js web application
+        The whole site is now written in TypeScript. It has been rewritten and migrated from Drupal which is in PHP. There are now two applications. <a href="https://github.com/signal599/ham-next">Ham-next</a> is the Next.js web application
         that you are looking at now. <a href="https://github.com/signal599/haminfo-cli">HamInfo-cli</a> is a Node.js cron driven
         app that handles importing data from the FCC, geocoding and data exports. It’s running on a low cost virtual server at Hetzner.
       </p>
