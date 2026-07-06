@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 export default function NewsNav() {
   const links = [
+    { href: "/news/2026-07", title: "July 2026" },
     { href: "/news", title: "May 2026" },
     { href: "/news/2026-04", title: "April 2026" },
     { href: "/news/2025-07", title: "July 2025" },
