@@ -5,15 +5,15 @@ export const metadata = { title: "News and Info" };
 
 export default function Page() {
   return (
-    <PageLayout title="News and Info: May 2026">
+    <PageLayout title="News and Info: July 2027">
       <p>
-        All the live code involved in serving pages to visitors is now in
-        TypeScript / Next.js. SQL queries use{" "}
-        <a href="https://orm.drizzle.team">Drizzle</a>.
+        The whole site is now written in TypeScript. It has been rewritten and migrated from Drupal which is in PHP. There are now two applications.
+        <a href="https://github.com/signal599/ham-next">Ham-next</a> is the Next.js web application
+        that you are looking at now. <a href="https://github.com/signal599/haminfo-cli">HamInfo-cli</a> is a Node.js command line driven
+        app that handles importing data from the FCC and the geocoding. It's running on a low cost virtual server at Hetzner.
       </p>
       <p>
-        The only Drupal / PHP code left is the weekly FCC updates and the
-        geocoding. I will be converting those when time and motivation permits.
+        It's been a fun project and learning experience for me. Let me know if you find any issues.
       </p>
       <p>
         73
