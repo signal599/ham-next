@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface Props {
   isAuthenticated: boolean;
   menuItem?: boolean;
@@ -15,8 +17,8 @@ export default function AuthNavItem({ isAuthenticated, menuItem }: Props) {
   }
 
   return (
-    <a href="/login" className={menuItem ? "" : "px-3 text-sm"}>
+    <Link href="/login" className={menuItem ? "" : "px-3 text-sm"}>
       Log in
-    </a>
+    </Link>
   );
 }
