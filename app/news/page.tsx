@@ -5,7 +5,7 @@ export const metadata = { title: "News and Info" };
 
 export default function Page() {
   return (
-    <PageLayout title="News and Info: July 2027">
+    <PageLayout title="News and Info: July 2026">
       <p>
         The whole site is now Next.js and Node.js written in TypeScript.</p><p>It has been recreated and migrated from Drupal which is in PHP. There are now two applications. <a href="https://github.com/signal599/ham-next">Ham-next</a> is the Next.js web application
         that you are looking at now. <a href="https://github.com/signal599/haminfo-cli">HamInfo-cli</a> is a Node.js cron driven
