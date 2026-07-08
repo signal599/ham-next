@@ -22,7 +22,7 @@ export default function NavLinks({
   return (
     <ul className={classes}>
       {links.map((link) => {
-        const isActive = pathname === link.href;
+        const isActive = pathname.startsWith(link.href);
         return (
           <li key={link.name}>
             <Link href={link.href}
