@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`getMarkerData full-shape snapshot > captures the current output for a multi-location fixture 1`] = `
+{
+  "activeLocationId": undefined,
+  "locations": [
+    {
+      "addresses": [
+        {
+          "address1": "123 Main St",
+          "address2": "",
+          "city": "Nashua",
+          "id": 10,
+          "state": "NH",
+          "stations": [
+            {
+              "callsign": "W1A",
+              "id": 1,
+              "name": "Jane Doe",
+              "operatorClass": "E",
+            },
+            {
+              "callsign": "W1B",
+              "id": 2,
+              "name": "Jane Doe",
+              "operatorClass": "N",
+            },
+          ],
+          "zip": "03060",
+        },
+      ],
+      "id": 1,
+      "lat": 42.5,
+      "lng": -71.3,
+    },
+    {
+      "addresses": [
+        {
+          "address1": "5 Oak Rd",
+          "address2": "",
+          "city": "Reading",
+          "id": 20,
+          "state": "PA",
+          "stations": [
+            {
+              "callsign": "K3XYZ",
+              "id": 3,
+              "name": "Reading Radio Club",
+              "operatorClass": "",
+            },
+          ],
+          "zip": "19601",
+        },
+      ],
+      "id": 2,
+      "lat": 40.1,
+      "lng": -75,
+    },
+  ],
+}
+`;

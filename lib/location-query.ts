@@ -171,7 +171,7 @@ function degreesToRadians(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
-type FlatLocationDTO = {
+export type FlatLocationDTO = {
   id: number;
   lat: string | null;
   lng: string | null;
@@ -232,7 +232,7 @@ async function getLocations(
     .orderBy(asc(hamLocation.id), asc(hamAddress.id), asc(hamStation.id));
 }
 
-function getMarkerData(
+export function getMarkerData(
   flatLocations: FlatLocationDTO[],
   activeCallsign: string | null,
 ): { locations: Location[]; activeLocationId: number | undefined } {
