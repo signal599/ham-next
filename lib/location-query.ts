@@ -1,5 +1,5 @@
 import { hamAddress, hamLocation, hamStation } from "@/src/db/schema";
-import { and, asc, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, lt, sql, SQL } from "drizzle-orm";
 import { MySql2Database } from "drizzle-orm/mysql2";
 import { db as dbFromPool } from "@/lib/db-pool";
 import {
@@ -55,19 +55,15 @@ async function getMapCenterInfo(
   switch (query.type) {
     case "callsign":
       return await getCallsignCoords(db, query.value);
-      break;
 
     case "gridsquare":
       return GridSquareToLatLng(query.value);
-      break;
 
     case "zipcode":
       return await GeocodeZipcode(query.value);
-      break;
 
     case "point":
       return { lat: query.lat, lng: query.lng };
-      break;
   }
 }
 
@@ -98,17 +94,14 @@ async function getCallsignCoords(
       throw new Error(
         `for-user: The address for ${callsign} has not been geocoded yet.`,
       );
-      break;
 
     case GEOCODE_STATUS_NOT_FOUND:
       throw new Error(
         `for-user: The address for ${callsign} could not be geocoded.`,
       );
-      break;
 
     case GEOCODE_STATUS_PO_BOX:
       throw new Error(`for-user: The address for ${callsign} is a PO Box.`);
-      break;
   }
 
   if (
@@ -133,39 +126,27 @@ async function getLocationIds(
   lng: number,
   radius: number,
 ): Promise<number[]> {
-  const locationAlias = "ham_location";
-  const distanceFormula = buildDistanceFormula(lat, lng, locationAlias);
-
-  const boundingBoxFormula = buildBoundingBoxFormula(
-    lat,
-    lng,
-    radius,
-    locationAlias,
-  );
+  const distanceFormula = buildDistanceFormula(lat, lng);
+  const boundingBoxFormula = buildBoundingBoxFormula(lat, lng, radius);
 
   const rows = await db
     .select({ id: hamLocation.id })
     .from(hamLocation)
     .where(
       and(
-        sql.raw(boundingBoxFormula),
-        lt(sql.raw(distanceFormula), radius),
+        boundingBoxFormula,
+        lt(distanceFormula, radius),
         isNotNull(hamLocation.latitude),
         isNotNull(hamLocation.longitude),
       ),
     )
-    .orderBy(asc(sql.raw(distanceFormula)))
+    .orderBy(asc(distanceFormula))
     .limit(200);
 
   return rows.map((row) => row.id);
 }
 
-function buildBoundingBoxFormula(
-  lat: number,
-  lng: number,
-  radius: number,
-  tableAlias: string,
-): string {
+function buildBoundingBoxFormula(lat: number, lng: number, radius: number): SQL {
   const latDelta = radius / METERS_PER_LAT_DEGREE;
   const latFrom = lat - latDelta;
   const latTo = lat + latDelta;
@@ -175,18 +156,14 @@ function buildBoundingBoxFormula(
   const lngFrom = lng - lngDelta;
   const lngTo = lng + lngDelta;
 
-  return `${tableAlias}.latitude BETWEEN ${latFrom} AND ${latTo} AND ${tableAlias}.longitude BETWEEN ${lngFrom} AND ${lngTo}`;
+  return sql`${hamLocation.latitude} BETWEEN ${latFrom} AND ${latTo} AND ${hamLocation.longitude} BETWEEN ${lngFrom} AND ${lngTo}`;
 }
 
-function buildDistanceFormula(
-  lat1: number,
-  lng1: number,
-  tableAlias: string,
-): string {
-  return `
+function buildDistanceFormula(lat1: number, lng1: number): SQL {
+  return sql`
     ST_Distance_Sphere(
-    ST_GeomFromText('POINT(${lat1} ${lng1})', 4326),
-    ST_GeomFromText(CONCAT('POINT(', ${tableAlias}.latitude, ' ', ${tableAlias}.longitude, ')'), 4326)
+    ST_GeomFromText(CONCAT('POINT(', ${lat1}, ' ', ${lng1}, ')'), 4326),
+    ST_GeomFromText(CONCAT('POINT(', ${hamLocation.latitude}, ' ', ${hamLocation.longitude}, ')'), 4326)
   )`;
 }
 

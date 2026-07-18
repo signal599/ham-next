@@ -15,11 +15,18 @@ export async function GET(req: NextRequest) {
   } else if (type === "zipcode" && p.get("value")) {
     query = { type: "zipcode", value: p.get("value")! };
   } else if (type === "point" && p.get("lat") && p.get("lng")) {
-    query = {
-      type: "point",
-      lat: Number(p.get("lat")),
-      lng: Number(p.get("lng")),
-    };
+    const lat = Number(p.get("lat"));
+    const lng = Number(p.get("lng"));
+    if (
+      Number.isFinite(lat) &&
+      lat >= -90 &&
+      lat <= 90 &&
+      Number.isFinite(lng) &&
+      lng >= -180 &&
+      lng <= 180
+    ) {
+      query = { type: "point", lat, lng };
+    }
   }
 
   if (!query) {

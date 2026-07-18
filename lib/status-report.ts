@@ -28,14 +28,22 @@ async function fetchStatusData() {
     const counts = new Map();
 
     rows.forEach(row => {
+      const status = row.status;
+
+      // Skip rows with an unknown geocode status; the counts arrays only have
+      // slots for statuses 0-3.
+      if (status === null || status < 0 || status > 3) {
+        return;
+      }
+
       if (!counts.has(row.state)) {
         counts.set(row.state, [0, 0, 0, 0, row.state]);
       }
 
       const value = counts.get(row.state);
-      value[row.status!] = row.count;
+      value[status] = row.count;
       counts.set(row.state, value);
-      totals[row.status!] += row.count;
+      totals[status] += row.count;
     });
 
     const result = counts.values().toArray().sort((a, b) => {

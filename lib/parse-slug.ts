@@ -10,7 +10,12 @@ export function parseSlug(slug: string[] | undefined): SearchQuery | null {
   if (first === 'p' && second && third) {
     const lat = parseFloat(second)
     const lng = parseFloat(third)
-    if (!isNaN(lat) && !isNaN(lng)) return { type: 'point', lat, lng }
+    if (
+      Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
+      Number.isFinite(lng) && lng >= -180 && lng <= 180
+    ) {
+      return { type: 'point', lat, lng }
+    }
     return null
   }
 
