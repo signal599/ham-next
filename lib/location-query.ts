@@ -129,18 +129,23 @@ async function getLocationIds(
   const distanceFormula = buildDistanceFormula(lat, lng);
   const boundingBoxFormula = buildBoundingBoxFormula(lat, lng, radius);
 
+  // Compute the distance once as a selected column, then reference that alias
+  // for the radius filter (HAVING) and the sort — otherwise MySQL evaluates
+  // ST_Distance_Sphere twice per candidate row.
+  const distanceColumn = distanceFormula.as("distance");
+
   const rows = await db
-    .select({ id: hamLocation.id })
+    .select({ id: hamLocation.id, distance: distanceColumn })
     .from(hamLocation)
     .where(
       and(
         boundingBoxFormula,
-        lt(distanceFormula, radius),
         isNotNull(hamLocation.latitude),
         isNotNull(hamLocation.longitude),
       ),
     )
-    .orderBy(asc(distanceFormula))
+    .having(lt(sql`\`distance\``, radius))
+    .orderBy(asc(sql`\`distance\``))
     .limit(200);
 
   return rows.map((row) => row.id);
