@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SearchQuery } from "@/lib/map-types";
 import { doQuery } from "@/lib/location-query";
+import logger from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams;
@@ -43,11 +44,22 @@ export async function GET(req: NextRequest) {
     const response = await doQuery(query, initialCallsign);
     return NextResponse.json(response);
   } catch (e) {
-    // Don't show system errors.
-    const message =
-      e instanceof Error && e.message.startsWith("for-user:")
-        ? e.message.substring(9)
-        : "Something went wrong.";
+    // "for-user:" errors are expected validation-style messages shown to the
+    // user; anything else is an unexpected failure worth logging.
+    const isUserError = e instanceof Error && e.message.startsWith("for-user:");
+
+    if (!isUserError) {
+      logger.error("map-query failed", {
+        event: "map_query_error",
+        query,
+        error: e instanceof Error ? e.message : String(e),
+        stack: e instanceof Error ? e.stack : undefined,
+      });
+    }
+
+    const message = isUserError
+      ? (e as Error).message.substring(9)
+      : "Something went wrong.";
 
     return NextResponse.json({ error: message }, { status: 500 });
   }
