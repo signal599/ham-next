@@ -1,4 +1,4 @@
-import { mysqlTable, index, primaryKey, int, varchar, unique, tinyint, longtext, decimal, char, datetime } from "drizzle-orm/mysql-core"
+import { mysqlTable, index, primaryKey, int, varchar, unique, tinyint, decimal, char, datetime } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const fccLicenseAm = mysqlTable("fcc_license_am", {
@@ -123,70 +123,42 @@ export const fccLicenseHd = mysqlTable("fcc_license_hd", {
 
 export const hamAddress = mysqlTable("ham_address", {
 	id: int({ unsigned: true }).autoincrement().notNull(),
-	uuid: varchar({ length: 128 }).notNull(),
-	langcode: varchar({ length: 12 }).notNull(),
 	hash: varchar({ length: 40 }),
-	addressLangcode: varchar("address__langcode", { length: 32 }),
 	addressCountryCode: varchar("address__country_code", { length: 2 }),
 	addressAdministrativeArea: varchar("address__administrative_area", { length: 255 }),
 	addressLocality: varchar("address__locality", { length: 255 }),
-	addressDependentLocality: varchar("address__dependent_locality", { length: 255 }),
 	addressPostalCode: varchar("address__postal_code", { length: 255 }),
 	addressSortingCode: varchar("address__sorting_code", { length: 255 }),
 	addressAddressLine1: varchar("address__address_line1", { length: 255 }),
 	addressAddressLine2: varchar("address__address_line2", { length: 255 }),
-	addressAddressLine3: varchar("address__address_line3", { length: 255 }),
-	addressOrganization: varchar("address__organization", { length: 255 }),
-	addressGivenName: varchar("address__given_name", { length: 255 }),
-	addressAdditionalName: varchar("address__additional_name", { length: 255 }),
-	addressFamilyName: varchar("address__family_name", { length: 255 }),
 	geocodeProvider: varchar("geocode_provider", { length: 2 }),
 	geocodeStatus: int("geocode_status"),
-	geocodeResponse: longtext("geocode_response"),
 	locationId: int("location_id", { unsigned: true }),
-	osmGeocodeStatus: int("osm_geocode_status"),
-	osmGeocodeResponse: longtext("osm_geocode_response"),
-	osmLatitude: decimal("osm_latitude", { precision: 10, scale: 7 }),
-	osmLongitude: decimal("osm_longitude", { precision: 10, scale: 7 }),
-	userId: int("user_id", { unsigned: true }).notNull(),
-	status: tinyint().notNull(),
 	created: int(),
 	changed: int(),
 	geocodeTime: int("geocode_time"),
-	geocodePriority: int("geocode_priority"),
 },
 (table) => [
 	index("ham_address_field__geocode_status__value").on(table.geocodeStatus),
 	index("ham_address_field__location_id__target_id").on(table.locationId),
-	index("ham_address_field__osm_geocode_status__value").on(table.osmGeocodeStatus),
-	index("ham_address_field__user_id__target_id").on(table.userId),
 	primaryKey({ columns: [table.id], name: "ham_address_id"}),
 	unique("ham_address_field__hash").on(table.hash),
-	unique("ham_address_field__uuid__value").on(table.uuid),
 ]);
 
 export const hamLocation = mysqlTable("ham_location", {
 	id: int({ unsigned: true }).autoincrement().notNull(),
-	uuid: varchar({ length: 128 }).notNull(),
-	langcode: varchar({ length: 12 }).notNull(),
-	userId: int("user_id", { unsigned: true }).notNull(),
 	latitude: decimal({ precision: 10, scale: 7 }),
 	longitude: decimal({ precision: 10, scale: 7 }),
-	status: tinyint().notNull(),
 	created: int(),
 	changed: int(),
 },
 (table) => [
-	index("ham_location_field__user_id__target_id").on(table.userId),
 	primaryKey({ columns: [table.id], name: "ham_location_id"}),
 	unique("ham_location__latlng").on(table.latitude, table.longitude),
-	unique("ham_location_field__uuid__value").on(table.uuid),
 ]);
 
 export const hamStation = mysqlTable("ham_station", {
 	id: int({ unsigned: true }).autoincrement().notNull(),
-	uuid: varchar({ length: 128 }).notNull(),
-	langcode: varchar({ length: 12 }).notNull(),
 	callsign: varchar({ length: 20 }).notNull(),
 	firstName: varchar("first_name", { length: 255 }),
 	middleName: varchar("middle_name", { length: 255 }),
@@ -197,17 +169,13 @@ export const hamStation = mysqlTable("ham_station", {
 	previousCallsign: varchar("previous_callsign", { length: 20 }),
 	totalHash: varchar("total_hash", { length: 40 }),
 	addressHash: varchar("address_hash", { length: 40 }).notNull(),
-	userId: int("user_id", { unsigned: true }).notNull(),
-	status: tinyint().notNull(),
 	created: int(),
 	changed: int(),
 },
 (table) => [
 	index("ham_station_field__address_hash").on(table.addressHash),
 	index("ham_station_field__callsign").on(table.callsign),
-	index("ham_station_field__user_id__target_id").on(table.userId),
 	primaryKey({ columns: [table.id], name: "ham_station_id"}),
-	unique("ham_station_field__uuid__value").on(table.uuid),
 ]);
 
 export const appUsers = mysqlTable("app_users", {
