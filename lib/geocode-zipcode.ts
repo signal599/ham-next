@@ -112,11 +112,20 @@ async function geocodeWithGeocodio(
 // persist it. The row always exists (we only reach here after finding it), so
 // this only ever updates. lat/lng are left untouched when we didn't get a
 // location, so an existing value survives a transient failure.
+//
+// Only 200 and 422 are recorded — a definitive success or "no such zip". Any
+// other code (403 rate limit, network/technical error) leaves response_code as
+// it was so the zip is retried later. This keeps response_code to null/200/422,
+// matching haminfo-cli's zip-geocode.ts.
 async function updateZipcode(
   zipcode: string,
   status: number,
   location: LatLng | null,
 ): Promise<void> {
+  if (status !== 200 && status !== 422) {
+    return;
+  }
+
   const set = location
     ? {
         responseCode: status,
