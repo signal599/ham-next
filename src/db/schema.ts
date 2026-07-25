@@ -221,8 +221,8 @@ export const exportQueue = mysqlTable("export_queue", {
 // Cache of geocoded US zipcodes, populated on demand from Geocodio.
 export const zipcodes = mysqlTable("zipcodes", {
 	zipcode: varchar({ length: 5 }).notNull(),
-	lat: decimal({ precision: 10, scale: 7 }).notNull(),
-	lng: decimal({ precision: 10, scale: 7 }).notNull(),
+	lat: decimal({ precision: 10, scale: 7 }),
+	lng: decimal({ precision: 10, scale: 7 }),
 }, (table) => [
 	primaryKey({ columns: [table.zipcode], name: "zipcodes_zipcode" }),
 ]);
