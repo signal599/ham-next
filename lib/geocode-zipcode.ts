@@ -6,6 +6,12 @@ import logger from "@/lib/logger";
 
 const ZIPCODE_RE = /^\d{5}$/;
 
+type ZipcodeRow = {
+  lat: string | null;
+  lng: string | null;
+  responseCode: number | null;
+};
+
 export async function GeocodeZipcode(rawZipcode: string): Promise<LatLng> {
   const zipcode = rawZipcode.trim();
 
@@ -13,44 +19,69 @@ export async function GeocodeZipcode(rawZipcode: string): Promise<LatLng> {
     throw new Error(`for-user: ${rawZipcode} is not a valid zipcode`);
   }
 
-  const cached = await getCachedZipcode(zipcode);
-  if (cached) {
-    return cached;
+  const row = await getZipcodeRow(zipcode);
+
+  // The zipcodes table is the authoritative list of valid US zipcodes. A zip
+  // that isn't in the table is not one we recognize — don't geocode it (that
+  // would let bots burn through the Geocodio allowance on garbage input).
+  if (!row) {
+    throw new Error(`for-user: ${zipcode} is not a valid zipcode`);
   }
 
-  const location = await geocodeWithGeocodio(zipcode);
+  // Already geocoded successfully.
+  if (row.responseCode === 200 && row.lat !== null && row.lng !== null) {
+    return { lat: parseFloat(row.lat), lng: parseFloat(row.lng) };
+  }
 
-  await cacheZipcode(zipcode, location);
+  // 422 = Geocodio processed the request but found no match. It's good enough
+  // that we trust it and treat the zip as invalid rather than retrying.
+  if (row.responseCode === 422) {
+    throw new Error(`for-user: ${zipcode} is not a valid zipcode`);
+  }
+
+  // response_code is null (never attempted) or a transient failure such as 403
+  // (daily allowance exhausted) or a network/technical error — worth retrying.
+  const { status, location } = await geocodeWithGeocodio(zipcode);
+
+  await updateZipcode(zipcode, status, location);
+
+  if (status !== 200 || !location) {
+    throw new Error(
+      `for-user: We are unable to geocode ${zipcode} at this time`,
+    );
+  }
 
   return location;
 }
 
-// Best-effort read: if the zipcodes table is missing or the query fails, treat
-// it as a cache miss and fall back to Geocodio rather than failing the request.
-async function getCachedZipcode(zipcode: string): Promise<LatLng | null> {
+// Reads the row for this zip. A DB failure is a system problem, not a signal
+// that the zip is invalid, so surface it as a generic error rather than
+// returning null (which would tell the user the zip doesn't exist).
+async function getZipcodeRow(zipcode: string): Promise<ZipcodeRow | null> {
   try {
     const [row] = await db
-      .select({ lat: zipcodes.lat, lng: zipcodes.lng })
+      .select({
+        lat: zipcodes.lat,
+        lng: zipcodes.lng,
+        responseCode: zipcodes.responseCode,
+      })
       .from(zipcodes)
-      .where(eq(zipcodes.zipcode, zipcode))
-      .limit(1);
+      .where(eq(zipcodes.zipcode, zipcode));
 
-    if (!row) {
-      return null;
-    }
-
-    return { lat: parseFloat(row.lat), lng: parseFloat(row.lng) };
+    return row ?? null;
   } catch (err) {
-    logger.warn("zipcode cache read failed", {
-      event: "zipcode_cache_read_error",
+    logger.error("zipcode table read failed", {
+      event: "zipcode_table_read_error",
       zipcode,
       error: err instanceof Error ? err.message : String(err),
     });
-    return null;
+    throw new Error(`zipcode table read failed for ${zipcode}`);
   }
 }
 
-async function geocodeWithGeocodio(zipcode: string): Promise<LatLng> {
+async function geocodeWithGeocodio(
+  zipcode: string,
+): Promise<{ status: number; location: LatLng | null }> {
   const params = new URLSearchParams({
     postal_code: zipcode,
     country: "US",
@@ -59,17 +90,8 @@ async function geocodeWithGeocodio(zipcode: string): Promise<LatLng> {
 
   const response = await fetch(`https://api.geocod.io/v2/geocode?${params}`);
 
-  // 422 = Geocodio processed the request but found no match for this zip.
-  if (response.status === 422) {
-    throw new Error(`for-user: ${zipcode} is not a valid zipcode`);
-  }
-
-  // Any other non-2xx (auth, rate limit, outage) is a system problem, not the
-  // user's fault — surface it as a generic error so it gets logged upstream.
-  if (!response.ok) {
-    throw new Error(
-      `Geocodio request failed for zipcode ${zipcode}: HTTP ${response.status}`,
-    );
+  if (response.status !== 200) {
+    return { status: response.status, location: null };
   }
 
   const data = await response.json();
@@ -80,27 +102,34 @@ async function geocodeWithGeocodio(zipcode: string): Promise<LatLng> {
     typeof location.lat !== "number" ||
     typeof location.lng !== "number"
   ) {
-    throw new Error(`for-user: Unable to get location for zipcode ${zipcode}`);
+    return { status: response.status, location: null };
   }
 
-  return { lat: location.lat, lng: location.lng };
+  return { status: response.status, location: { lat: location.lat, lng: location.lng } };
 }
 
-// Best-effort write: a successful geocode is still returned even if we can't
-// persist it. onDuplicateKeyUpdate keeps it idempotent if two requests race to
-// cache the same zip.
-async function cacheZipcode(zipcode: string, location: LatLng): Promise<void> {
-  const lat = location.lat.toString();
-  const lng = location.lng.toString();
+// Best-effort write: the geocode result is still returned even if we can't
+// persist it. The row always exists (we only reach here after finding it), so
+// this only ever updates. lat/lng are left untouched when we didn't get a
+// location, so an existing value survives a transient failure.
+async function updateZipcode(
+  zipcode: string,
+  status: number,
+  location: LatLng | null,
+): Promise<void> {
+  const set = location
+    ? {
+        responseCode: status,
+        lat: location.lat.toString(),
+        lng: location.lng.toString(),
+      }
+    : { responseCode: status };
 
   try {
-    await db
-      .insert(zipcodes)
-      .values({ zipcode, lat, lng })
-      .onDuplicateKeyUpdate({ set: { lat, lng } });
+    await db.update(zipcodes).set(set).where(eq(zipcodes.zipcode, zipcode));
   } catch (err) {
-    logger.error("zipcode cache write failed", {
-      event: "zipcode_cache_write_error",
+    logger.error("zipcode table write failed", {
+      event: "zipcode_table_write_error",
       zipcode,
       error: err instanceof Error ? err.message : String(err),
     });
