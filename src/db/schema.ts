@@ -223,6 +223,7 @@ export const zipcodes = mysqlTable("zipcodes", {
 	zipcode: varchar({ length: 5 }).notNull(),
 	lat: decimal({ precision: 10, scale: 7 }),
 	lng: decimal({ precision: 10, scale: 7 }),
+	responseCode: int("response_code"),
 }, (table) => [
 	primaryKey({ columns: [table.zipcode], name: "zipcodes_zipcode" }),
 ]);
