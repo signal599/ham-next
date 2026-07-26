@@ -47,7 +47,7 @@ export async function GeocodeZipcode(rawZipcode: string): Promise<LatLng> {
 
   if (status !== 200 || !location) {
     throw new Error(
-      `for-user: We are unable to geocode ${zipcode} at this time. This will be fixed tomorrow.`,
+      `for-user: We are unable to geocode ${zipcode} at this time.`,
     );
   }
 
