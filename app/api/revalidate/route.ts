@@ -16,9 +16,7 @@ function tokenMatches(
   return timingSafeEqual(a, b);
 }
 
-// Prefer the token from a header; fall back to the query string so the
-// existing caller keeps working. Once haminfo-cli sends the header, the
-// query-string branch can be removed.
+// Read the token from a request header.
 function getProvidedToken(request: NextRequest): string | null {
   const headerToken = request.headers.get('x-revalidate-token');
   if (headerToken) return headerToken;
@@ -26,8 +24,7 @@ function getProvidedToken(request: NextRequest): string | null {
   const auth = request.headers.get('authorization');
   if (auth?.startsWith('Bearer ')) return auth.slice('Bearer '.length);
 
-  // TODO: remove query-string fallback once haminfo-cli sends the header.
-  return request.nextUrl.searchParams.get('token');
+  return null;
 }
 
 export async function POST(request: NextRequest) {
