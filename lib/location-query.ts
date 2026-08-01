@@ -13,14 +13,13 @@ import {
 import { addressHasLowerCase, buildAddressKey, roundPoint } from "./utils";
 import { getNeighboringGridSquares, GridSquareToLatLng } from "./gridsquares";
 import { GeocodeZipcode } from "./geocode-zipcode";
+import {
+  GEOCODE_STATUS_PENDING,
+  GEOCODE_STATUS_SUCCESS,
+} from "./geocode-status";
 
 const METERS_PER_LAT_DEGREE = 111132;
 const RADIUS = 32187; // 20 miles in meters.
-
-const GEOCODE_STATUS_PENDING = 0;
-const GEOCODE_STATUS_SUCCESS = 1;
-const GEOCODE_STATUS_NOT_FOUND = 2;
-const GEOCODE_STATUS_PO_BOX = 3;
 
 export async function doQuery(
   query: SearchQuery,
@@ -77,6 +76,7 @@ async function getCallsignCoords(
       lat: hamLocation.latitude,
       lng: hamLocation.longitude,
       geocodeStatus: hamAddress.geocodeStatus,
+      noGeocode: hamAddress.noGeocode,
     })
     .from(hamStation)
     .innerJoin(hamAddress, eq(hamAddress.hash, hamStation.addressHash))
@@ -89,35 +89,33 @@ async function getCallsignCoords(
 
   const row = rows[0];
 
-  switch (row.geocodeStatus) {
-    case GEOCODE_STATUS_PENDING:
-      throw new Error(
-        `for-user: The address for ${callsign} has not been geocoded yet.`,
-      );
-
-    case GEOCODE_STATUS_NOT_FOUND:
-      throw new Error(
-        `for-user: The address for ${callsign} could not be geocoded.`,
-      );
-
-    case GEOCODE_STATUS_PO_BOX:
-      throw new Error(`for-user: The address for ${callsign} is a PO Box.`);
+  // Check success first: manually geocoded addresses have coordinates even
+  // though they carry no_geocode = 1 to keep the batch geocoder away from them.
+  if (
+    row.geocodeStatus === GEOCODE_STATUS_SUCCESS &&
+    row.lat !== null &&
+    row.lng !== null
+  ) {
+    return roundPoint({
+      lat: parseFloat(row.lat),
+      lng: parseFloat(row.lng),
+    });
   }
 
-  if (
-    row.geocodeStatus !== GEOCODE_STATUS_SUCCESS ||
-    row.lat === null ||
-    row.lng === null
-  ) {
+  if (row.noGeocode) {
+    throw new Error(`for-user: The address for ${callsign} is a PO Box.`);
+  }
+
+  if (row.geocodeStatus === GEOCODE_STATUS_PENDING) {
     throw new Error(
-      `for-user: The address for ${callsign} could not be geocoded.`,
+      `for-user: The address for ${callsign} has not been geocoded yet.`,
     );
   }
 
-  return roundPoint({
-    lat: parseFloat(row.lat),
-    lng: parseFloat(row.lng),
-  });
+  // Both not-found statuses mean the same thing to a user.
+  throw new Error(
+    `for-user: The address for ${callsign} could not be geocoded.`,
+  );
 }
 
 async function getLocationIds(
