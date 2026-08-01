@@ -1,10 +1,14 @@
-import { getStatusData } from "@/lib/status-report";
+import { getGeocodeHistory, getStatusData } from "@/lib/status-report";
 import PageLayout from "@/components/page-layout";
 
 export const metadata = { title: "Status" };
 
 export default async function Page() {
-  const { result, totals } = await getStatusData();
+  const [{ result, totals }, history] = await Promise.all([
+    getStatusData(),
+    getGeocodeHistory(),
+  ]);
+
   return (
     <PageLayout title="License Map Status">
       <p>The table below shows the status of the geocoding.</p>
@@ -62,6 +66,34 @@ export default async function Page() {
             <td>{totals[3]}</td>
           </tr>
         </tfoot>
+      </table>
+
+      <h2 className="mt-8">Geocoding history</h2>
+      <p>
+        The following shows how many addresses were geocoded in each month. A
+        process is running which will slowly re-geocode all addresses. This is
+        to take advantage of the improved accuracy and success rates since the
+        project started. The counts for the older months will slowly reduce over
+        time as those addresses are re-geocoded.
+      </p>
+
+      <table className="table-zebra max-w-3xl">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {history.map((row) => {
+            return (
+              <tr key={row.month}>
+                <td>{row.month}</td>
+                <td>{row.count}</td>
+              </tr>
+            );
+          })}
+        </tbody>
       </table>
     </PageLayout>
   );

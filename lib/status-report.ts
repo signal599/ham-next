@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { sql, gt, notInArray, and } from "drizzle-orm";
+import { sql, gt, isNotNull, notInArray, and } from "drizzle-orm";
 import { hamAddress } from "@/src/db/schema";
 import { db } from '@/lib/db-pool';
 import {
@@ -19,6 +19,15 @@ export const getStatusData = unstable_cache(fetchStatusData, ["status-report"], 
   tags: ["status"],
   revalidate: 3600,
 });
+
+export const getGeocodeHistory = unstable_cache(
+  fetchGeocodeHistory,
+  ["geocode-history"],
+  {
+    tags: ["status"],
+    revalidate: 3600,
+  },
+);
 
 async function fetchStatusData() {
   const rows = await db
@@ -74,6 +83,28 @@ async function fetchStatusData() {
     });
 
     return { result, totals };
+}
+
+export type GeocodeHistoryRow = {
+  month: string;
+  count: number;
+};
+
+// The number of addresses geocoded in each month, oldest first. Rows are
+// re-geocoded over time, so a row is only counted in the month it was last
+// geocoded.
+async function fetchGeocodeHistory(): Promise<GeocodeHistoryRow[]> {
+  const month = sql<string>`DATE_FORMAT(FROM_UNIXTIME(${hamAddress.geocodeTime}), '%Y-%m')`;
+
+  return await db
+    .select({
+      month,
+      count: sql<number>`count(*)`,
+    })
+    .from(hamAddress)
+    .where(isNotNull(hamAddress.geocodeTime))
+    .groupBy(month)
+    .orderBy(month);
 }
 
 // Success is checked before no_geocode because manually geocoded addresses are
