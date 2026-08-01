@@ -71,7 +71,7 @@ export default async function Page() {
       <h2 className="mt-8">Geocoding history</h2>
       <p>
         The following shows how many addresses were geocoded in each month. A
-        process is running which will slowly re-geocode all addresses. This is
+        process is running which is slowly re-geocoding all addresses. This is
         to take advantage of the improved accuracy and success rates since the
         project started. The counts for the older months will slowly reduce over
         time as those addresses are re-geocoded.
