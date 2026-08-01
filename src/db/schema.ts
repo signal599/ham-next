@@ -137,10 +137,13 @@ export const hamAddress = mysqlTable("ham_address", {
 	created: int(),
 	changed: int(),
 	geocodeTime: int("geocode_time"),
+	noGeocode: tinyint("no_geocode").default(0).notNull(),
 },
 (table) => [
 	index("ham_address_field__geocode_status__value").on(table.geocodeStatus),
 	index("ham_address_field__location_id__target_id").on(table.locationId),
+	index("ham_address__forward").on(table.noGeocode, table.geocodeStatus, table.addressAdministrativeArea, table.id),
+	index("ham_address__regeocode").on(table.noGeocode, table.geocodeStatus, table.geocodeTime, table.id),
 	primaryKey({ columns: [table.id], name: "ham_address_id"}),
 	unique("ham_address_field__hash").on(table.hash),
 ]);
