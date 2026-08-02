@@ -25,7 +25,7 @@ export default async function MapSlugPage({ params }: Props) {
   }
 
   return (
-    <PageLayout title="Amateur Radio License Map" extra_classes="sm:pr-28">
+    <PageLayout title="Amateur Radio License Map">
 
       <div className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-2 sm:-mt-5 mb-5">
         <input type="checkbox" />
