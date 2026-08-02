@@ -136,11 +136,11 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
         <legend className="text-sm font-medium text-gray-700 mb-2">
           Search by
         </legend>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
           {INPUT_TYPES.map(({ value, label }) => (
             <label
               key={value}
-              className="flex items-center gap-1.5 cursor-pointer text-sm"
+              className="flex items-center gap-1.5 py-2 cursor-pointer text-sm"
             >
               <input
                 type="radio"
@@ -148,7 +148,7 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
                 value={value}
                 checked={inputType === value}
                 onChange={() => handleTypeChange(value)}
-                className="accent-blue-600"
+                className="w-4 h-4 accent-blue-600"
               />
               {label}
             </label>
@@ -170,14 +170,16 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
                   ? "Enter a six character grid subsquare"
                   : "Enter a five digit zip code"
             }
-            className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 min-w-0 border border-gray-300 rounded px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            inputMode={inputType === "zipcode" ? "numeric" : "text"}
             autoCapitalize={inputType === "callsign" ? "characters" : "off"}
+            autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
           />
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-sm font-medium px-5 sm:px-4 py-2.5 sm:py-2 rounded transition-colors"
           >
             Go
           </button>

@@ -25,9 +25,9 @@ export default async function MapSlugPage({ params }: Props) {
   }
 
   return (
-    <PageLayout title="Amateur Radio License Map" extra_classes="sm:pr-28">
+    <PageLayout title="Amateur Radio License Map">
 
-      <div className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-5 mb-5">
+      <div className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-2 sm:-mt-5 mb-5">
         <input type="checkbox" />
         <div className="collapse-title font-semibold">
           Click to show instructions
@@ -45,16 +45,16 @@ export default async function MapSlugPage({ params }: Props) {
             <li>Enter an appropriate search value.</li>
             <li>Press Enter or hit the Go button.</li>
             <li>
-              Scroll down see the map. You might need to click on the empty
-              space to the right of the map to avoid zooming the map
-              unintentionally.
+              The map appears below the search box, and the page scrolls down to
+              it.
             </li>
           </ul>
           <p>The selection determines the center of the map.</p>
           <p>
             When the map appears, you can adjust the zoom level and drag the map
             around. If you’re looking at a sparsely populated area, you might
-            need to zoom out.
+            need to zoom out. To scroll the page itself, swipe on the area above
+            the map rather than on the map.
           </p>
           <p>
             After two seconds of not moving, it will reload with stations for

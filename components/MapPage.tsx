@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import SearchForm from "./SearchForm";
 import MapView from "./MapView";
@@ -19,6 +19,12 @@ interface Props {
   showExportLink?: boolean;
 }
 
+// Set when the user submits a search, so the map is brought into view once the
+// results land. On a phone the map sits below the fold and without this a
+// search looks like it did nothing. This can't be a ref: submitting navigates
+// to a new slug, which remounts MapPage and would reset it.
+let pendingScrollToMap = false;
+
 export default function MapPage({ initialQuery, showExportLink }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState<SearchQuery | null>(initialQuery);
@@ -32,10 +38,18 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const mapRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!query) return;
     fetchStations(query);
   }, [query]);
+
+  useEffect(() => {
+    if (!pendingScrollToMap || !center) return;
+    pendingScrollToMap = false;
+    mapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [center]);
 
   async function fetchStations(q: SearchQuery, center?: LatLng) {
     setLoading(true);
@@ -61,6 +75,7 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
       setLocations(data.locations);
       setGridSquares(data.gridsquares);
     } catch (e) {
+      pendingScrollToMap = false;
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
@@ -68,8 +83,12 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   }
 
   function handleSearch(newQuery: SearchQuery) {
+    pendingScrollToMap = true;
     setQuery(newQuery);
-    router.push(queryToPath(newQuery));
+    // Next resets scroll to the top of the page on navigation, which would
+    // undo the scroll-into-view above (and, on a grid click, throw the user
+    // back to the top of the page mid-interaction).
+    router.push(queryToPath(newQuery), { scroll: false });
   }
 
   const handleCenterChange = useCallback(
@@ -84,7 +103,7 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   function handleGridSquareClick(code: string) {
     const query: SearchQuery = { type: "gridsquare", value: code };
     setQuery(query);
-    router.push(queryToPath(query));
+    router.push(queryToPath(query), { scroll: false });
   }
 
   return (
@@ -93,12 +112,13 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
         <SearchForm initialQuery={initialQuery} onSearch={handleSearch} />
 
         <div className="flex gap-30">
-          <label className="flex items-center gap-1.5 cursor-pointer text-sm">
+          <label className="flex items-center gap-1.5 py-2 cursor-pointer text-sm">
             <input
               type="checkbox"
               name="showgridlines"
               checked={showGridSquares}
               onChange={(e) => setShowGridSquares(e.target.checked)}
+              className="w-4 h-4 accent-blue-600"
             />
             Show gridsquares
           </label>
@@ -114,16 +134,18 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {query && center && (
-        <MapView
-          center={center}
-          locations={locations}
-          openId={openId}
-          onOpenIdChange={setOpenId}
-          gridSquares={gridSquares}
-          showGridSquares={showGridSquares}
-          onCenterChange={handleCenterChange}
-          onGridClick={handleGridSquareClick}
-        />
+        <div ref={mapRef} className="scroll-mt-2">
+          <MapView
+            center={center}
+            locations={locations}
+            openId={openId}
+            onOpenIdChange={setOpenId}
+            gridSquares={gridSquares}
+            showGridSquares={showGridSquares}
+            onCenterChange={handleCenterChange}
+            onGridClick={handleGridSquareClick}
+          />
+        </div>
       )}
     </div>
   );

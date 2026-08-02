@@ -4,9 +4,11 @@ interface Props {
   location: Location;
 }
 
+// The height cap keeps an address with many stations from filling the map —
+// on a phone an uncapped popup covers it entirely. The content scrolls inside.
 export default function LocationContent({ location }: Props) {
   return (
-    <div className="text-sm max-w-64 pb-2 pr-3">
+    <div className="text-sm max-w-64 max-h-[40svh] overflow-y-auto pb-2 pr-3">
       {location.addresses.map((address, i) => (
         <div key={address.id}>
           {i > 0 && <hr className="my-2 border-gray-200" />}

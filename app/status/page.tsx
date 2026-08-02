@@ -35,7 +35,7 @@ export default async function Page() {
       </ul>
 
       <table className="table-zebra max-w-3xl">
-        <thead>
+        <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-white">
           <tr>
             <th>State</th>
             <th>New</th>
@@ -78,7 +78,7 @@ export default async function Page() {
       </p>
 
       <table className="table-zebra max-w-3xl">
-        <thead>
+        <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-white">
           <tr>
             <th>Month</th>
             <th>Count</th>
