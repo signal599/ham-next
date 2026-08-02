@@ -92,8 +92,12 @@ export default function MapView({
     onOpenIdChange();
   }, [onOpenIdChange]);
 
+  // Map height tracks the viewport rather than a width breakpoint: a phone in
+  // landscape is wide but only ~375px tall, so a width-based rule would give it
+  // a map taller than the screen. svh keeps it stable as mobile browsers
+  // collapse and expand their URL bar.
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden">
+    <div className="w-full h-[70svh] min-h-64 max-h-[600px] rounded-lg overflow-hidden">
       <Map
         defaultCenter={center}
         defaultZoom={DEFAULT_ZOOM}

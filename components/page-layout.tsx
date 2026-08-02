@@ -2,8 +2,8 @@ export default function PageLayout({ title, children, extra_classes = ""}: { tit
   const extra = extra_classes ? ` ${extra_classes}` : "";
 
   return (
-    <div className={`p-8 pt-5 pb-0 sm:pt-5 sm:pb-20 sm:p-12${extra}`}>
-      <h1>{title}</h1>
+    <div className={`p-4 pt-4 pb-0 sm:p-12 sm:pt-5 sm:pb-20${extra}`}>
+      <h1 className="text-2xl sm:text-4xl">{title}</h1>
       {children}
     </div>
   );

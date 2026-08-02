@@ -87,7 +87,8 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
         onChange={e => handleInput(e.target.value)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
         placeholder="Enter a street address"
-        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
       />
@@ -98,7 +99,7 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
             <li
               key={i}
               onMouseDown={() => handleSelect(prediction)}
-              className="px-3 py-2 text-sm hover:bg-blue-50 cursor-pointer"
+              className="px-3 py-3 sm:py-2 text-base sm:text-sm hover:bg-blue-50 cursor-pointer"
             >
               {prediction.text.toString()}
             </li>
