@@ -3,6 +3,7 @@ import MapPage from "@/components/MapPage";
 import PageLayout from "@/components/page-layout";
 import { cookies } from "next/headers";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
+import Link from "next/link";
 
 interface Props {
   params: { slug?: string[] };
@@ -35,7 +36,7 @@ export default async function MapSlugPage({ params }: Props) {
         <div className="collapse-content text-sm">
           <p className="mt-0">
             Use this map to find amateur radio license holders in the USA.{" "}
-            <a href="/news">Click here</a> for more general info and history.
+            <Link href="/news/2018-03">Click here</Link> for more general info and history.
           </p>
           <ul>
             <li>

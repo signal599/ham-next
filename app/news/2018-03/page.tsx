@@ -8,6 +8,9 @@ export default function Page() {
   return (
     <PageLayout title={title}>
       <p>
+        Use the menu links to the right (below on mobile) to see more recent updates.
+      </p>
+      <p>
         Welcome to my little spare time project. I’ve been working on this on
         and off for about a year as time and motivation allows.
       </p>
