@@ -6,6 +6,7 @@ import AuthNavItem from "@/components/AuthNavItem";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
+import { DRAWER_ID } from "@/lib/drawer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,13 +55,13 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="drawer">
-          <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+          <input id={DRAWER_ID} type="checkbox" className="drawer-toggle" />
           <div className="drawer-content flex flex-col">
             {/* Navbar */}
             <div className="navbar bg-base-300 w-full">
               <div className="flex-none md:hidden">
                 <label
-                  htmlFor="my-drawer-2"
+                  htmlFor={DRAWER_ID}
                   aria-label="open sidebar"
                   className="btn btn-square btn-ghost"
                 >
@@ -91,12 +92,12 @@ export default async function RootLayout({
           </div>
           <div className="drawer-side">
             <label
-              htmlFor="my-drawer-2"
+              htmlFor={DRAWER_ID}
               aria-label="close sidebar"
               className="drawer-overlay"
             ></label>
             <div className="menu bg-base-200 min-h-full w-80 p-4 flex flex-col">
-              <NavLinks links={links} classes="flex-none" />
+              <NavLinks links={links} classes="flex-none" inDrawer />
               <div className="mt-2 px-4">
                 <AuthNavItem isAuthenticated={isAuthenticated} menuItem />
               </div>
