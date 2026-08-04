@@ -41,7 +41,13 @@ async function fetchStatusData() {
     .where(
       and(
         gt(hamAddress.addressAdministrativeArea, ""),
-        notInArray(hamAddress.addressAdministrativeArea, ["AA", "AE"]),
+        notInArray(hamAddress.addressAdministrativeArea, [
+          "AA",
+          "AE",
+          "AP",
+          "AS",
+          "GU",
+        ]),
       ),
     )
     .groupBy(
