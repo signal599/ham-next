@@ -5,7 +5,8 @@ import { SearchQuery } from "@/lib/map-types";
 import AddressAutocomplete from "./AddressAutocomplete";
 import { formatGridSquare } from "@/lib/utils";
 
-type InputType = "callsign" | "gridsquare" | "zipcode" | "address";
+type TextInputType = "callsign" | "gridsquare" | "zipcode";
+type InputType = TextInputType | "address";
 
 interface Props {
   initialQuery: SearchQuery | null;
@@ -25,28 +26,42 @@ function initialInputType(query: SearchQuery | null): InputType {
   return query.type;
 }
 
-function initialInputValue(query: SearchQuery | null): string {
-  if (!query) return "";
-  if (query.type === "callsign") return query.value;
-  if (query.type === "gridsquare") return query.value;
-  if (query.type === "zipcode") return query.value;
-  return ""; // point/address — don't try to restore
+// One entry per text input type, so a value typed for one type is kept while
+// the user switches to another. point/address is not restored or retained.
+function initialInputValues(
+  query: SearchQuery | null,
+): Record<TextInputType, string> {
+  const values: Record<TextInputType, string> = {
+    callsign: "",
+    gridsquare: "",
+    zipcode: "",
+  };
+
+  if (
+    query &&
+    (query.type === "callsign" ||
+      query.type === "gridsquare" ||
+      query.type === "zipcode")
+  ) {
+    values[query.type] = query.value;
+  }
+
+  return values;
 }
 
 export default function SearchForm({ initialQuery, onSearch }: Props) {
   const [inputType, setInputType] = useState<InputType>(
     initialInputType(initialQuery),
   );
-  const [inputValue, setInputValue] = useState(initialInputValue(initialQuery));
+  const [inputValues, setInputValues] = useState(
+    initialInputValues(initialQuery),
+  );
   const [error, setError] = useState<string | null>(null);
 
+  const inputValue = inputType === "address" ? "" : inputValues[inputType];
+
   function handleInputChange(value: string) {
-    if (inputType === "callsign") {
-      value = value
-        .substring(0, 10)
-        .toUpperCase()
-        .replace(/[^0-9A-Z]/g, "");
-    }
+    if (inputType === "address") return;
 
     switch (inputType) {
       case "callsign":
@@ -72,12 +87,11 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
         break;
     }
 
-    setInputValue(value);
+    setInputValues((prev) => ({ ...prev, [inputType]: value }));
   }
 
   function handleTypeChange(type: InputType) {
     setInputType(type);
-    setInputValue("");
     setError(null);
   }
 
