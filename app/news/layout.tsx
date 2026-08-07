@@ -1,4 +1,5 @@
 import NewsNav from "@/components/news-nav";
+import { getNewsLinks } from "@/lib/news";
 
 export default function NewsLayout({
   children,
@@ -10,7 +11,7 @@ export default function NewsLayout({
       <div className="sm:flex-4">{children}</div>
       <div className="pl-5 sm:flex-1 sm:pl-0 sm:pt-8">
         <h2>Posts</h2>
-        <NewsNav />
+        <NewsNav links={getNewsLinks()} />
       </div>
     </div>
   );

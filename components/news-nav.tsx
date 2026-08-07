@@ -2,16 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { NewsLink } from "@/lib/news";
 
-export default function NewsNav() {
-  const links = [
-    { href: "/news", title: "July 2026" },
-    { href: "/news/2026-04", title: "April 2026" },
-    { href: "/news/2025-07", title: "July 2025" },
-    { href: "/news/2024-11", title: "November 2024" },
-    { href: "/news/2018-03", title: "March 2018" },
-  ];
-
+export default function NewsNav({ links }: { links: NewsLink[] }) {
   const pathname = usePathname();
 
   return (
