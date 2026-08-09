@@ -35,20 +35,23 @@ export default async function Page() {
       </ul>
 
       <table className="table-zebra max-w-3xl">
+        <caption className="sr-only">Geocoding status by state</caption>
         <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-white">
           <tr>
-            <th>State</th>
-            <th>New</th>
-            <th>Successful</th>
-            <th>Not Found</th>
-            <th>PO Box</th>
+            <th scope="col">State</th>
+            <th scope="col">New</th>
+            <th scope="col">Successful</th>
+            <th scope="col">Not Found</th>
+            <th scope="col">PO Box</th>
           </tr>
         </thead>
         <tbody>
           {result.map((row) => {
             return (
               <tr key={row[4]}>
-                <td>{row[4]}</td>
+                <th scope="row" className="font-normal">
+                  {row[4]}
+                </th>
                 <td>{row[0]}</td>
                 <td>{row[1]}</td>
                 <td>{row[2]}</td>
@@ -59,7 +62,7 @@ export default async function Page() {
         </tbody>
         <tfoot>
           <tr>
-            <th>Totals</th>
+            <th scope="row">Totals</th>
             <td>{totals[0]}</td>
             <td>{totals[1]}</td>
             <td>{totals[2]}</td>
@@ -78,17 +81,20 @@ export default async function Page() {
       </p>
 
       <table className="table-zebra max-w-3xl">
+        <caption className="sr-only">Addresses geocoded per month</caption>
         <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-white">
           <tr>
-            <th>Month</th>
-            <th>Count</th>
+            <th scope="col">Month</th>
+            <th scope="col">Count</th>
           </tr>
         </thead>
         <tbody>
           {history.map((row) => {
             return (
               <tr key={row.month}>
-                <td>{row.month}</td>
+                <th scope="row" className="font-normal">
+                  {row.month}
+                </th>
                 <td>{row.count}</td>
               </tr>
             );

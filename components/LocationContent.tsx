@@ -61,6 +61,7 @@ function StationContent({ station }: StationContentProps) {
           className="text-blue-600 hover:underline text-sm"
         >
           qrz.com
+          <span className="sr-only"> (opens in a new tab)</span>
         </a>
         {station.operatorClass && (
           <span className="text-gray-500 text-xs">{station.operatorClass}</span>

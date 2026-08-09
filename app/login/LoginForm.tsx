@@ -41,7 +41,7 @@ export default function LoginForm() {
     return (
       <div className="card bg-base-100 shadow-xl w-full max-w-sm">
         <div className="card-body items-center text-center">
-          <h2 className="card-title">Check your email</h2>
+          <h1 className="card-title">Check your email</h1>
           <p className="text-sm">
             If you are a registered user, we sent a login link to <strong>{email}</strong>.
           </p>
@@ -53,7 +53,7 @@ export default function LoginForm() {
   return (
     <div className="card bg-base-100 shadow-xl w-full max-w-sm">
       <div className="card-body">
-        <h2 className="card-title">Sign in</h2>
+        <h1 className="card-title">Sign in</h1>
         <p className="text-sm">If you are a registered user, enter your email and we&rsquo;ll send you a magic link.</p>
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
           <div className="form-control">

@@ -95,7 +95,7 @@ export default function ExportForm() {
                 ** will export the entire country. Make sure this is intentional.
               </p>
             )}
-            <p className="text-xs text-base-content/50">
+            <p className="text-xs text-base-content/70">
               Two-letter abbreviation, or <strong>**</strong> to export the whole country.
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function ExportForm() {
               maxLength={5}
               inputMode="numeric"
             />
-            <p className="text-xs text-base-content/50">Five digit zip code.</p>
+            <p className="text-xs text-base-content/70">Five digit zip code.</p>
           </div>
 
           <div className="divider my-0" />
@@ -148,7 +148,7 @@ export default function ExportForm() {
                 />
               </div>
             </div>
-            <p className="text-xs text-base-content/50">These can usually be left at defaults.</p>
+            <p className="text-xs text-base-content/70">These can usually be left at defaults.</p>
           </div>
 
           {error && (
