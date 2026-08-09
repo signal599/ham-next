@@ -54,11 +54,17 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:shadow focus:ring-2 focus:ring-blue-500"
+        >
+          Skip to main content
+        </a>
         <div className="drawer">
           <input id={DRAWER_ID} type="checkbox" className="drawer-toggle" />
           <div className="drawer-content flex flex-col">
             {/* Navbar */}
-            <div className="navbar bg-base-300 w-full">
+            <header className="navbar bg-base-300 w-full">
               <div className="flex-none md:hidden">
                 <label
                   htmlFor={DRAWER_ID}
@@ -83,12 +89,17 @@ export default async function RootLayout({
               <div className="mx-2 flex-1 px-2">
                 <Link href="/map">Amateur Radio</Link>
               </div>
-              <div className="hidden flex-none md:flex md:items-center">
+              <nav
+                aria-label="Main"
+                className="hidden flex-none md:flex md:items-center"
+              >
                 <NavLinks links={links} classes="menu menu-horizontal" />
                 <AuthNavItem isAuthenticated={isAuthenticated} />
-              </div>
-            </div>
-            <article className="prose max-w-none">{children}</article>
+              </nav>
+            </header>
+            <main id="main-content" className="prose max-w-none">
+              {children}
+            </main>
           </div>
           <div className="drawer-side">
             <label
@@ -96,12 +107,15 @@ export default async function RootLayout({
               aria-label="close sidebar"
               className="drawer-overlay"
             ></label>
-            <div className="menu bg-base-200 min-h-full w-80 p-4 flex flex-col">
+            <nav
+              aria-label="Main"
+              className="menu bg-base-200 min-h-full w-80 p-4 flex flex-col"
+            >
               <NavLinks links={links} classes="flex-none" inDrawer />
               <div className="mt-2 px-4">
                 <AuthNavItem isAuthenticated={isAuthenticated} menuItem />
               </div>
-            </div>
+            </nav>
           </div>
         </div>
       </body>

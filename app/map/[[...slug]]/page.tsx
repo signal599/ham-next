@@ -28,11 +28,10 @@ export default async function MapSlugPage({ params }: Props) {
   return (
     <PageLayout title="Amateur Radio License Map">
 
-      <div className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-2 sm:-mt-5 mb-5">
-        <input type="checkbox" />
-        <div className="collapse-title font-semibold">
+      <details className="collapse collapse-arrow bg-base-100 rounded-lg border border-gray-300 -mt-2 sm:-mt-5 mb-5">
+        <summary className="collapse-title font-semibold">
           Click to show instructions
-        </div>
+        </summary>
         <div className="collapse-content text-sm">
           <p className="mt-0">
             Use this map to find amateur radio license holders in the USA.{" "}
@@ -66,7 +65,7 @@ export default async function MapSlugPage({ params }: Props) {
           </p>
           <p className="mb-0">Click on a marker to see a popup of name and address info.</p>
         </div>
-      </div>
+      </details>
 
       <MapPage initialQuery={query} showExportLink={isAuthenticated} />
     </PageLayout>

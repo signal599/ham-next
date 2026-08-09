@@ -37,6 +37,9 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   const [showGridSquares, setShowGridSquares] = useState<boolean>(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Announced to screen readers only. The map itself gives no indication that a
+  // search ran or what it found.
+  const [status, setStatus] = useState("");
 
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -54,6 +57,9 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   async function fetchStations(q: SearchQuery, center?: LatLng) {
     setLoading(true);
     setError(null);
+    // Not on a bounds-driven re-fetch: the user is panning, and announcing
+    // every load would talk over them.
+    if (!center) setStatus("Loading stations.");
 
     try {
       const params = buildApiParams(q, center);
@@ -74,8 +80,15 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
 
       setLocations(data.locations);
       setGridSquares(data.gridsquares);
+      setStatus(
+        data.locations.length === 1
+          ? "1 location on the map."
+          : `${data.locations.length} locations on the map.`,
+      );
     } catch (e) {
       pendingScrollToMap = false;
+      // The error itself is announced by its own alert below.
+      setStatus("");
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
@@ -123,15 +136,27 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
             Show gridsquares
           </label>
 
-          {loading && <p className="text-sm m-0 p-0">Loading...</p>}
+          {loading && (
+            <p aria-hidden="true" className="text-sm m-0 p-0">
+              Loading...
+            </p>
+          )}
         </div>
+
+        <p aria-live="polite" className="sr-only">
+          {status}
+        </p>
       </div>
 
       {showExportLink && (
         <a href="/export" className="text-sm text-blue-600 hover:underline -mt-2">Export to file</a>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
       {query && center && (
         <div ref={mapRef} className="scroll-mt-2">

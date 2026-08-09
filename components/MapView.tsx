@@ -125,6 +125,19 @@ export default function MapView({
   );
 }
 
+// Google copies a marker's title to its aria-label, so this is what a screen
+// reader reads when it lands on the marker.
+function markerTitle(location: Location, stationCount: number): string {
+  const address = location.addresses[0];
+  const { callsign } = address.stations[0];
+  const others = stationCount - 1;
+
+  const more =
+    others > 0 ? ` and ${others} other station${others > 1 ? "s" : ""}` : "";
+
+  return `${callsign}${more}, ${address.city}, ${address.state}`;
+}
+
 interface LocationMarkerProps {
   location: Location;
   isOpen: boolean;
@@ -155,12 +168,16 @@ function LocationMarker({
     [],
   );
 
+  const stationCount = location.addresses.reduce((acc, address) => {
+    return acc + address.stations.length;
+  }, 0);
+
+  // The pin's glyph is drawn content, so it never reaches the accessibility
+  // tree — without this the marker announces as an unnamed button.
+  const title = markerTitle(location, stationCount);
+
   useEffect(() => {
     if (!markerRef.current || !markerLib) return;
-
-    const stationCount = location.addresses.reduce((acc, address) => {
-      return acc + address.stations.length;
-    }, 0);
 
     const plus = stationCount > 1 ? " +" : "";
 
@@ -176,7 +193,7 @@ function LocationMarker({
     return () => {
       if (markerRef.current) markerRef.current.content = null;
     };
-  }, [markerEl, markerLib, location]);
+  }, [markerEl, markerLib, location, stationCount]);
 
   const handleClick = useCallback(() => {
     onMarkerClick(location.id);
@@ -187,6 +204,7 @@ function LocationMarker({
       <AdvancedMarker
         ref={handleMarkerRef}
         position={{ lat: location.lat, lng: location.lng }}
+        title={title}
         onClick={handleClick}
       />
 

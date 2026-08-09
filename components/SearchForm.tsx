@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { SearchQuery } from "@/lib/map-types";
 import AddressAutocomplete from "./AddressAutocomplete";
 import { formatGridSquare } from "@/lib/utils";
@@ -19,6 +19,14 @@ const INPUT_TYPES: { value: InputType; label: string }[] = [
   { value: "zipcode", label: "Zip code" },
   { value: "address", label: "Street address" },
 ];
+
+// Names the text input for screen readers, and doubles as its placeholder. A
+// placeholder alone is not a label: it disappears once the user types.
+const INPUT_LABELS: Record<TextInputType, string> = {
+  callsign: "Enter a callsign",
+  gridsquare: "Enter a six character grid subsquare",
+  zipcode: "Enter a five digit zip code",
+};
 
 function initialInputType(query: SearchQuery | null): InputType {
   if (!query) return "callsign";
@@ -57,6 +65,9 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
     initialInputValues(initialQuery),
   );
   const [error, setError] = useState<string | null>(null);
+
+  const inputId = useId();
+  const errorId = useId();
 
   const inputValue = inputType === "address" ? "" : inputValues[inputType];
 
@@ -173,17 +184,17 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
       {/* Text inputs for callsign / gridsquare / zipcode */}
       {inputType !== "address" && (
         <div className="flex gap-2">
+          <label htmlFor={inputId} className="sr-only">
+            {INPUT_LABELS[inputType]}
+          </label>
           <input
+            id={inputId}
             type="text"
             value={inputValue}
             onChange={(e) => handleInputChange(e.target.value)}
-            placeholder={
-              inputType === "callsign"
-                ? "Enter a callsign"
-                : inputType === "gridsquare"
-                  ? "Enter a six character grid subsquare"
-                  : "Enter a five digit zip code"
-            }
+            placeholder={INPUT_LABELS[inputType]}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
             className="flex-1 min-w-0 border border-gray-300 rounded px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             inputMode={inputType === "zipcode" ? "numeric" : "text"}
             autoCapitalize={inputType === "callsign" ? "characters" : "off"}
@@ -208,7 +219,11 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
       )}
 
       {/* Error message */}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
     </form>
   );
 }
