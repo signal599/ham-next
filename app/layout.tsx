@@ -109,7 +109,7 @@ export default async function RootLayout({
             ></label>
             <nav
               aria-label="Main"
-              className="menu bg-base-200 min-h-full w-80 p-4 flex flex-col"
+              className="menu bg-base-200 min-h-full w-48 p-4 flex flex-col"
             >
               {/* space-y-3 doubles the gap daisyUI's menu padding gives the links */}
               <NavLinks links={links} classes="flex-none space-y-3" inDrawer />
