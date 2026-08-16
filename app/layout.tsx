@@ -111,8 +111,10 @@ export default async function RootLayout({
               aria-label="Main"
               className="menu bg-base-200 min-h-full w-80 p-4 flex flex-col"
             >
-              <NavLinks links={links} classes="flex-none" inDrawer />
-              <div className="mt-2 px-4">
+              {/* space-y-3 doubles the gap daisyUI's menu padding gives the links */}
+              <NavLinks links={links} classes="flex-none space-y-3" inDrawer />
+              {/* px-3 matches the inline padding daisyUI's menu gives the links above */}
+              <div className="mt-4 px-3">
                 <AuthNavItem isAuthenticated={isAuthenticated} menuItem />
               </div>
             </nav>
