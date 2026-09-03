@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useId } from 'react'
+import { useState, useEffect, useCallback, useId, useRef } from 'react'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
 import { MathLib, roundPoint } from '@/lib/utils'
 import { LatLng } from '@/lib/map-types'
@@ -8,6 +8,19 @@ import { LatLng } from '@/lib/map-types'
 interface Props {
   onPlaceSelect: (lat: number, lng: number) => void
 }
+
+// Every keystroke used to cost an autocomplete request. Last month that was
+// 5,578 requests for 576 addresses actually chosen, so both of these exist to
+// keep the Places API bill down rather than to change what the user sees.
+
+// Long enough to swallow a burst of typing, short enough that the list still
+// feels like it is keeping up.
+const DEBOUNCE_MS = 350
+
+// Three characters can't pick out a street address, and more than half of all
+// sessions are abandoned before a suggestion is chosen — those give up around
+// the third or fourth character, having already spent a request or two.
+const MIN_INPUT_LENGTH = 5
 
 export default function AddressAutocomplete({ onPlaceSelect }: Props) {
   const placesLib = useMapsLibrary('places')
@@ -23,6 +36,11 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
   // aria-activedescendant rather than real focus, which stays in the input.
   const [activeIndex, setActiveIndex] = useState(-1)
 
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Bumped for every request started or cancelled, so a slow reply can be
+  // recognised as stale and dropped instead of replacing newer predictions.
+  const requestSeq = useRef(0)
+
   const inputId = useId()
   const listId = useId()
   const optionId = (i: number) => `${listId}-option-${i}`
@@ -37,32 +55,71 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
 
   const fetchPredictions = useCallback(
     async (input: string) => {
-      if (!placesLib || !sessionToken || input.length < 3) {
+      if (!placesLib || !sessionToken || input.length < MIN_INPUT_LENGTH) {
         setPredictions([])
         return
       }
+
+      const seq = ++requestSeq.current
+
       const request: google.maps.places.AutocompleteRequest = {
         input,
         sessionToken,
         includedRegionCodes: ['us'],
+        // Only the kinds of result this map can center on. Narrowing them means
+        // a usable suggestion appears sooner, so there is less to type.
+        includedPrimaryTypes: ['street_address', 'premise', 'subpremise'],
       }
-      const { suggestions } =
-        await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(request)
-      setPredictions(
-        suggestions
-          .map(s => s.placePrediction)
-          .filter((p): p is google.maps.places.PlacePrediction => p !== null)
-      )
+
+      try {
+        const { suggestions } =
+          await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(request)
+
+        if (seq !== requestSeq.current) return
+
+        setPredictions(
+          suggestions
+            .map(s => s.placePrediction)
+            .filter((p): p is google.maps.places.PlacePrediction => p !== null)
+        )
+      } catch {
+        if (seq !== requestSeq.current) return
+        // Deliberately silent: the user is still mid-word, and an alert for a
+        // lookup they haven't finished asking for would only be in the way.
+        // A failure to geocode the address they do pick is reported below.
+        setPredictions([])
+      }
     },
     [placesLib, sessionToken]
   )
+
+  const cancelPendingFetch = useCallback(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = null
+    // Also disowns any request already in flight.
+    requestSeq.current++
+  }, [])
+
+  // A pending request outliving the component would settle against a token
+  // that no longer belongs to anything.
+  useEffect(() => cancelPendingFetch, [cancelPendingFetch])
 
   function handleInput(value: string) {
     setInputValue(value)
     setError(null)
     setShowSuggestions(true)
     setActiveIndex(-1)
-    fetchPredictions(value)
+
+    cancelPendingFetch()
+
+    // Nothing to wait for below the threshold — clear the list now rather than
+    // leaving stale suggestions under a shortened input.
+    if (value.length < MIN_INPUT_LENGTH) {
+      setPredictions([])
+      return
+    }
+
+    debounceTimer.current = setTimeout(() => fetchPredictions(value), DEBOUNCE_MS)
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -114,6 +171,11 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
 
   async function handleSelect(prediction: google.maps.places.PlacePrediction) {
     if (!placesLib) return
+
+    // The search is over. A queued request would not only be wasted, it would
+    // run against the replacement session token below and open a session that
+    // never completes.
+    cancelPendingFetch()
 
     setInputValue(prediction.text.toString())
     setPredictions([])
