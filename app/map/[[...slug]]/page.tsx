@@ -43,13 +43,18 @@ export default async function MapSlugPage({ params }: Props) {
               address).
             </li>
             <li>Enter an appropriate search value.</li>
-            <li>Press Enter or hit the Go button.</li>
+            <li>Press Enter or hit the Show Map button.</li>
             <li>
               The map appears below the search box, and the page scrolls down to
               it.
             </li>
           </ul>
           <p>The selection determines the center of the map.</p>
+          <p>
+            If you arrived here from a link that already names a callsign, grid
+            square or zip code, the search box is filled in for you. The map is
+            not drawn until you hit Show Map.
+          </p>
           <p>
             When the map appears, you can adjust the zoom level and drag the map
             around. If you’re looking at a sparsely populated area, you might
