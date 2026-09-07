@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import SearchForm from "./SearchForm";
-import MapView from "./MapView";
 import {
   SearchQuery,
   GridSquare,
@@ -13,6 +13,11 @@ import {
 } from "@/lib/map-types";
 import { queryToPath } from "@/lib/parse-slug";
 import { roundPoint } from "@/lib/utils";
+
+// MapLibre is a few hundred KB and touches window as it loads, and most visits
+// to a /map/<something> slug never draw a map at all. Fetching it only once one
+// is actually asked for keeps it out of the page's own bundle.
+const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
 interface Props {
   initialQuery: SearchQuery | null;
