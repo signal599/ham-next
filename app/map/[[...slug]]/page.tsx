@@ -35,7 +35,7 @@ export default async function MapSlugPage({ params }: Props) {
         <div className="collapse-content text-sm">
           <p className="mt-0">
             Use this map to find amateur radio license holders in the USA.{" "}
-            <Link href="/news/2018-03">Click here</Link> for more general info and history.
+            <Link href="/blog/2018-03">Click here</Link> for more general info and history.
           </p>
           <ul>
             <li>

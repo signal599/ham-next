@@ -15,8 +15,8 @@ licensee can be shown on the map.
 
 The site is a [Next.js](https://nextjs.org) application. A companion command
 line app downloads the FCC data, geocodes the addresses and produces the data
-exports. See the [News and Info](/news) pages for the story of how it was built
-and what has changed along the way.
+exports. See the [Blog](/blog) for the story of how it was built and what has
+changed along the way.
 
 ## Data and accuracy
 

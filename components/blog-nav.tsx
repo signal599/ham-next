@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { NewsLink } from "@/lib/news";
+import type { BlogLink } from "@/lib/blog";
 
-export default function NewsNav({ links }: { links: NewsLink[] }) {
+export default function BlogNav({ links }: { links: BlogLink[] }) {
   const pathname = usePathname();
 
   return (

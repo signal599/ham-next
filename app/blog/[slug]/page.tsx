@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import MarkdownArticle from "@/components/markdown-article";
-import { getPost } from "@/lib/news";
+import { getPost } from "@/lib/blog";
 
 interface Props {
   params: { slug: string };
@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const post = getPost(slug);
 
-  return { title: post ? post.heading : "News and Info" };
+  return { title: post ? post.heading : "Blog" };
 }
 
 export default async function Page({ params }: Props) {

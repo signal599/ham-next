@@ -1,7 +1,7 @@
-import NewsNav from "@/components/news-nav";
-import { getNewsLinks } from "@/lib/news";
+import BlogNav from "@/components/blog-nav";
+import { getBlogLinks } from "@/lib/blog";
 
-export default function NewsLayout({
+export default function BlogLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ export default function NewsLayout({
       <div className="sm:flex-4">{children}</div>
       <div className="pl-5 sm:flex-1 sm:pl-0 sm:pt-8">
         <h2>Posts</h2>
-        <NewsNav links={getNewsLinks()} />
+        <BlogNav links={getBlogLinks()} />
       </div>
     </div>
   );
