@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { parseMarkdown } from "@/lib/markdown";
 
 const NEWS_DIR = path.join(process.cwd(), "content/news");
 
@@ -20,30 +21,8 @@ export interface NewsLink {
   title: string;
 }
 
-// Pull the frontmatter out of a markdown file. Only simple "key: value" lines
-// are supported which is all the news posts need.
 function parse(slug: string, contents: string): NewsPost {
-  const match = contents.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-
-  if (!match) {
-    throw new Error(`News post ${slug} has no frontmatter.`);
-  }
-
-  const fields = new Map<string, string>();
-
-  for (const line of match[1].split(/\r?\n/)) {
-    if (!line.trim()) continue;
-
-    const separator = line.indexOf(":");
-    if (separator === -1) {
-      throw new Error(`News post ${slug} has an invalid frontmatter line: ${line}`);
-    }
-
-    fields.set(
-      line.slice(0, separator).trim(),
-      line.slice(separator + 1).trim(),
-    );
-  }
+  const { fields, body } = parseMarkdown(`${slug}.md`, contents);
 
   const title = fields.get("title");
   if (!title) {
@@ -54,7 +33,7 @@ function parse(slug: string, contents: string): NewsPost {
     slug,
     title,
     heading: `News and Info: ${title}`,
-    body: contents.slice(match[0].length),
+    body,
   };
 }
 

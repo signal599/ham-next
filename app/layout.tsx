@@ -29,6 +29,7 @@ export const metadata: Metadata = {
 const links = [
   { name: "License Map", href: "/map" },
   { name: "Map Status", href: "/status" },
+  { name: "About", href: "/about" },
   { name: "News and Info", href: "/news" },
 ];
 

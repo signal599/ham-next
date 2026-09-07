@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import NewsArticle from "@/components/news-article";
+import MarkdownArticle from "@/components/markdown-article";
 import { getPost } from "@/lib/news";
 
 interface Props {
@@ -19,5 +19,5 @@ export default async function Page({ params }: Props) {
 
   if (!post) notFound();
 
-  return <NewsArticle post={post} />;
+  return <MarkdownArticle title={post.heading} body={post.body} />;
 }

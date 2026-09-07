@@ -2,7 +2,6 @@ import Link from "next/link";
 import Markdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import PageLayout from "@/components/page-layout";
-import type { NewsPost } from "@/lib/news";
 
 const components: Components = {
   // Internal links navigate client side. External links are left alone so they
@@ -24,11 +23,17 @@ const components: Components = {
   },
 };
 
-export default function NewsArticle({ post }: { post: NewsPost }) {
+export default function MarkdownArticle({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
   return (
-    <PageLayout title={post.heading}>
+    <PageLayout title={title}>
       <Markdown components={components} rehypePlugins={[rehypeRaw]}>
-        {post.body}
+        {body}
       </Markdown>
     </PageLayout>
   );
