@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useId, useRef } from 'react'
 import { useMapsLibrary } from '@vis.gl/react-google-maps'
-import { MathLib, roundPoint } from '@/lib/utils'
+import { roundPoint } from '@/lib/utils'
 import { LatLng } from '@/lib/map-types'
 
 interface Props {
@@ -25,8 +25,6 @@ const MIN_INPUT_LENGTH = 5
 export default function AddressAutocomplete({ onPlaceSelect }: Props) {
   const placesLib = useMapsLibrary('places')
 
-  const [sessionToken, setSessionToken] =
-    useState<google.maps.places.AutocompleteSessionToken | null>(null)
   const [predictions, setPredictions] =
     useState<google.maps.places.PlacePrediction[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -37,6 +35,11 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
   const [activeIndex, setActiveIndex] = useState(-1)
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Nothing renders from the token, so it is a ref rather than state. It is
+  // created on the first request of a session and cleared once a selection
+  // completes, which is what Google bills against.
+  const sessionToken =
+    useRef<google.maps.places.AutocompleteSessionToken | null>(null)
   // Bumped for every request started or cancelled, so a slow reply can be
   // recognised as stale and dropped instead of replacing newer predictions.
   const requestSeq = useRef(0)
@@ -47,24 +50,20 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
 
   const isOpen = showSuggestions && predictions.length > 0
 
-  // Initialize session token once places library is ready
-  useEffect(() => {
-    if (!placesLib) return
-    setSessionToken(new placesLib.AutocompleteSessionToken())
-  }, [placesLib])
-
   const fetchPredictions = useCallback(
     async (input: string) => {
-      if (!placesLib || !sessionToken || input.length < MIN_INPUT_LENGTH) {
+      if (!placesLib || input.length < MIN_INPUT_LENGTH) {
         setPredictions([])
         return
       }
+
+      sessionToken.current ??= new placesLib.AutocompleteSessionToken()
 
       const seq = ++requestSeq.current
 
       const request: google.maps.places.AutocompleteRequest = {
         input,
-        sessionToken,
+        sessionToken: sessionToken.current,
         includedRegionCodes: ['us'],
         // Only the kinds of result this map can center on. Narrowing them means
         // a usable suggestion appears sooner, so there is less to type.
@@ -90,7 +89,7 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
         setPredictions([])
       }
     },
-    [placesLib, sessionToken]
+    [placesLib]
   )
 
   const cancelPendingFetch = useCallback(() => {
@@ -173,8 +172,7 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
     if (!placesLib) return
 
     // The search is over. A queued request would not only be wasted, it would
-    // run against the replacement session token below and open a session that
-    // never completes.
+    // open a fresh session below that never completes.
     cancelPendingFetch()
 
     setInputValue(prediction.text.toString())
@@ -189,8 +187,9 @@ export default function AddressAutocomplete({ onPlaceSelect }: Props) {
       if (place.location) {
         const point: LatLng = roundPoint({lat: place.location.lat(), lng: place.location.lng()})
         onPlaceSelect(point.lat, point.lng);
-        // Refresh session token after completed selection
-        setSessionToken(new placesLib.AutocompleteSessionToken())
+        // The session ends with the selection. The next one opens lazily, so
+        // an abandoned search after this costs nothing.
+        sessionToken.current = null
       } else {
         setError('Could not get location for that address.')
       }
