@@ -4,9 +4,9 @@ title: About Amateur Radio License Map
 
 ## What this site is
 
-The Amateur Radio License Map plots the locations of licensed amateur radio operators in the United States License data comes from the FCC's Universal Licensing System and is refreshed weekly. Addresses are geocoded and displayed on an interactive map.
+The Amateur Radio License Map plots the locations of licensed amateur radio operators in the United States. License data comes from the FCC’s Universal Licensing System and is refreshed weekly. Addresses are geocoded and displayed on an interactive map.
 
-It's been a fun hobby project of mine since 2018.
+It’s been a fun hobby project of mine since 2018.
 
 ## How it works
 
