@@ -3,38 +3,44 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { closeDrawer } from "@/lib/drawer";
+import { ACTIVE_LINK_CLASSES } from "@/components/nav-links";
+
+// Logging out is a POST, but the button has to sit directly inside the menu
+// item to pick up daisyUI's padding and hover. So the form lives outside the
+// nav and the buttons point at it by id. There are two copies of the nav and
+// only ever one form.
+const LOGOUT_FORM_ID = "logout-form";
+
+export function LogoutForm() {
+  return <form id={LOGOUT_FORM_ID} action="/api/auth/logout" method="POST" />;
+}
 
 interface Props {
   isAuthenticated: boolean;
-  // Only the copy inside the mobile drawer is a menu item, so this doubles as
-  // the signal to dismiss the drawer on activation.
-  menuItem?: boolean;
+  // Set on the copy inside the mobile drawer, so activating it dismisses it.
+  inDrawer?: boolean;
 }
 
-export default function AuthNavItem({ isAuthenticated, menuItem }: Props) {
+export default function AuthNavItem({ isAuthenticated, inDrawer }: Props) {
   const pathname = usePathname();
 
   if (isAuthenticated) {
     return (
-      <form action="/api/auth/logout" method="POST" className={menuItem ? "" : "flex items-center px-3"}>
-        <button
-          type="submit"
-          onClick={menuItem ? closeDrawer : undefined}
-          className="link link-hover text-sm"
-        >
-          Log out
-        </button>
-      </form>
+      <button
+        type="submit"
+        form={LOGOUT_FORM_ID}
+        onClick={inDrawer ? closeDrawer : undefined}
+      >
+        Log out
+      </button>
     );
   }
-
-  const isActive = pathname.startsWith("/login");
 
   return (
     <Link
       href="/login"
-      onClick={menuItem ? closeDrawer : undefined}
-      className={`${menuItem ? "" : "px-3 text-sm"} ${isActive ? "underline underline-offset-8 decoration-blue-800 decoration-2" : ""}`}
+      onClick={inDrawer ? closeDrawer : undefined}
+      className={pathname.startsWith("/login") ? ACTIVE_LINK_CLASSES : ""}
     >
       Log in
     </Link>

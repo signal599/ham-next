@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavLinks from "@/components/nav-links";
-import AuthNavItem from "@/components/AuthNavItem";
+import AuthNavItem, { LogoutForm } from "@/components/AuthNavItem";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySessionToken, COOKIE_NAME } from "@/lib/auth";
@@ -90,12 +90,10 @@ export default async function RootLayout({
               <div className="mx-2 flex-1 px-2">
                 <Link href="/map">Amateur Radio</Link>
               </div>
-              <nav
-                aria-label="Main"
-                className="hidden flex-none md:flex md:items-center"
-              >
-                <NavLinks links={links} classes="menu menu-horizontal" />
-                <AuthNavItem isAuthenticated={isAuthenticated} />
+              <nav aria-label="Main" className="hidden flex-none md:block">
+                <NavLinks links={links} classes="menu menu-horizontal">
+                  <AuthNavItem isAuthenticated={isAuthenticated} />
+                </NavLinks>
               </nav>
             </header>
             <main id="main-content" className="prose max-w-none">
@@ -113,14 +111,13 @@ export default async function RootLayout({
               className="menu bg-base-200 min-h-full w-48 p-4 flex flex-col"
             >
               {/* space-y-3 doubles the gap daisyUI's menu padding gives the links */}
-              <NavLinks links={links} classes="flex-none space-y-3" inDrawer />
-              {/* px-3 matches the inline padding daisyUI's menu gives the links above */}
-              <div className="mt-4 px-3">
-                <AuthNavItem isAuthenticated={isAuthenticated} menuItem />
-              </div>
+              <NavLinks links={links} classes="flex-none space-y-3" inDrawer>
+                <AuthNavItem isAuthenticated={isAuthenticated} inDrawer />
+              </NavLinks>
             </nav>
           </div>
         </div>
+        {isAuthenticated && <LogoutForm />}
       </body>
     </html>
   );
