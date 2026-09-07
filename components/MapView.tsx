@@ -8,7 +8,7 @@ import Map, {
   type ViewStateChangeEvent,
   type PopupInstance,
 } from "react-map-gl/maplibre";
-import { setWorkerUrl } from "maplibre-gl";
+import { setWorkerUrl, type Offset } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Location, GridSquare, LatLng } from "@/lib/map-types";
 import GridSquares from "./GridSquares";
@@ -42,12 +42,34 @@ const MAP_STYLE = "https://tiles.openfreemap.org/styles/bright";
 // level down here.
 const DEFAULT_ZOOM = 13;
 
-// Height of the pin's pointer. The marker is shifted up by this much so the
-// tip, rather than the bottom of the label, sits on the coordinate.
+// The pin stands on its coordinate rather than straddling it: the pointer's tip
+// marks the spot and the label sits above that. The marker is shifted up by the
+// pointer's height so the tip, not the bottom of the label, lands on the point.
 const POINTER_HEIGHT = 5;
+const LABEL_HEIGHT = 19;
+const PIN_HEIGHT = LABEL_HEIGHT + POINTER_HEIGHT;
 
-// Clears the pin so the popup doesn't cover the callsign that opened it.
-const POPUP_OFFSET = 28;
+// Breathing room between the pin and a popup opened off it.
+const POPUP_GAP = 4;
+
+// A plain number here would be applied radially, which assumes a marker centred
+// on its point. This one is not, so the popup has the whole pin to clear when it
+// opens above and nothing at all to clear when it opens below — a single number
+// leaves the popup below a pin sitting a pin's height too low. MapLibre picks
+// the anchor from the space available, so every direction it can pick needs its
+// own offset. Sideways clearance is approximate: the pin is as wide as the
+// callsign on it.
+const POPUP_OFFSET: Offset = {
+  center: [0, 0],
+  top: [0, POPUP_GAP],
+  "top-left": [0, POPUP_GAP],
+  "top-right": [0, POPUP_GAP],
+  bottom: [0, -(PIN_HEIGHT + POPUP_GAP)],
+  "bottom-left": [0, -(PIN_HEIGHT + POPUP_GAP)],
+  "bottom-right": [0, -(PIN_HEIGHT + POPUP_GAP)],
+  left: [PIN_HEIGHT + POPUP_GAP, 0],
+  right: [-(PIN_HEIGHT + POPUP_GAP), 0],
+};
 
 export default function MapView({
   center,
