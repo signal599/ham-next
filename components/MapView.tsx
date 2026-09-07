@@ -209,6 +209,28 @@ function LocationMarker({
   }, [onMarkerClick, location.id]);
 
   const popupRef = useRef<PopupInstance | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Opening the popup moves focus into it, so closing has to hand focus back
+  // to the pin. Without that a keyboard visitor is dropped at the top of the
+  // document and has to tab through the whole page to reach the map again.
+  const closePopup = useCallback(() => {
+    onPopupClose();
+    buttonRef.current?.focus();
+  }, [onPopupClose]);
+
+  // MapLibre has no Escape handling of its own. Only the open marker listens,
+  // and only one is ever open.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePopup();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, closePopup]);
 
   // MapLibre decides which side of the pin the popup sits on from the popup's
   // height, which is still zero at the moment it is created: React has not
@@ -229,6 +251,7 @@ function LocationMarker({
         {/* A real button rather than a styled div: the pin has to be reachable
             by keyboard, and it is the only way into the station details. */}
         <button
+          ref={buttonRef}
           type="button"
           aria-label={title}
           aria-expanded={isOpen}
@@ -249,7 +272,7 @@ function LocationMarker({
           closeOnClick={false}
           // Wrapped: MapLibre hands onClose the popup event, which would
           // otherwise arrive as the id to open.
-          onClose={() => onPopupClose()}
+          onClose={() => closePopup()}
           maxWidth="none"
         >
           <LocationContent location={location} />

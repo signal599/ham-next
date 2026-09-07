@@ -27,10 +27,14 @@ body {
 
 /* MapLibre gives its popup close button no size of its own — it relies on the
    padding a browser puts on a button by default, which Tailwind's preflight
-   strips, leaving a 7px target. 24px is the smallest WCAG counts as hittable. */
+   strips, leaving a 7px target. 24px is the smallest WCAG counts as hittable.
+
+   The font size is not the size the × looks. The glyph paints far smaller than
+   its em: at 16px it inked 7.3px against the 10px of a callsign beside it,
+   which is why it read as small. 22px inks 10.1px, so the two now match. */
 .maplibregl-popup-close-button {
   width: 24px;
   height: 24px;
-  font-size: 16px;
+  font-size: 22px;
   line-height: 1;
 }
