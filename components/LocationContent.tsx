@@ -4,11 +4,15 @@ interface Props {
   location: Location;
 }
 
-// The height cap keeps an address with many stations from filling the map —
-// on a phone an uncapped popup covers it entirely. The content scrolls inside.
+// The height cap keeps an address with many stations from overflowing the map,
+// which clips the popup rather than scrolling it. The worst case is a pin in
+// the middle of the map, leaving half the map's height — the map is 70svh
+// capped at 600px — for the popup to open into, less the 28px it is offset off
+// the pin and the 40px of MapLibre's own popup chrome. The content scrolls
+// inside whatever that leaves.
 export default function LocationContent({ location }: Props) {
   return (
-    <div className="text-sm max-w-64 max-h-[40svh] overflow-y-auto pb-2 pr-3">
+    <div className="text-sm max-w-64 max-h-[calc(min(35svh,300px)-68px)] overflow-y-auto pb-2 pr-3">
       {location.addresses.map((address, i) => (
         <div key={address.id}>
           {i > 0 && <hr className="my-2 border-gray-200" />}

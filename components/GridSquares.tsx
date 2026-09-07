@@ -1,7 +1,6 @@
-// GridSquares.tsx
 "use client";
 
-import { AdvancedMarker } from "@vis.gl/react-google-maps";
+import { Marker } from "react-map-gl/maplibre";
 import { GridSquare } from "@/lib/map-types";
 import GridSquareOverlay from "./GridSquareOverlay";
 
@@ -11,30 +10,30 @@ interface Props {
 }
 
 export default function GridSquares({ gridSquares, onGridClick }: Props) {
-
   return (
     <>
       <GridSquareOverlay gridSquares={gridSquares} />
       {gridSquares.map((sq) => (
-        <AdvancedMarker
-          key={sq.code}
-          position={{ lat: sq.lat, lng: sq.lng }}
-          onClick={() => onGridClick?.(sq.code)}
-        >
-          <div style={{
-            background: "yellow",
-            border: "1px solid #999",
-            borderRadius: 2,
-            padding: "1px 4px",
-            fontSize: 16,
-            fontWeight: "bold",
-            whiteSpace: "nowrap",
-            cursor: onGridClick ? "pointer" : "default",
-            transform: "translate(-50%, -50%)",
-          }}>
+        <Marker key={sq.code} longitude={sq.lng} latitude={sq.lat} anchor="center">
+          <button
+            type="button"
+            aria-label={`Show gridsquare ${sq.code}`}
+            disabled={!onGridClick}
+            onClick={() => onGridClick?.(sq.code)}
+            style={{
+              background: "yellow",
+              border: "1px solid #999",
+              borderRadius: 2,
+              padding: "1px 4px",
+              fontSize: 16,
+              fontWeight: "bold",
+              whiteSpace: "nowrap",
+              cursor: onGridClick ? "pointer" : "default",
+            }}
+          >
             {sq.code}
-          </div>
-        </AdvancedMarker>
+          </button>
+        </Marker>
       ))}
     </>
   );

@@ -1,14 +1,15 @@
 "use client";
 
-import { useCallback, useRef, useState, useEffect } from "react";
-import {
-  Map,
-  AdvancedMarker,
-  InfoWindow,
-  MapCameraChangedEvent,
-  useMapsLibrary,
-  useMap,
-} from "@vis.gl/react-google-maps";
+import { useCallback, useEffect, useRef } from "react";
+import Map, {
+  Marker,
+  Popup,
+  NavigationControl,
+  type ViewStateChangeEvent,
+  type PopupInstance,
+} from "react-map-gl/maplibre";
+import { setWorkerUrl } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { Location, GridSquare, LatLng } from "@/lib/map-types";
 import GridSquares from "./GridSquares";
 import LocationContent from "./LocationContent";
@@ -25,7 +26,28 @@ interface Props {
   debounceMs?: number;
 }
 
-const DEFAULT_ZOOM = 14;
+// MapLibre looks for its tile worker beside its own import.meta.url, which
+// after bundling is a chunk under /_next/static with no worker next to it.
+// Without this the worker 404s and the map draws its markers over a blank
+// page, with nothing in the console to say why, so point it at the copy
+// scripts/copy-maplibre-worker.mjs leaves in public/ instead.
+setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
+
+// OpenFreeMap serves these tiles with no key, no account and no quota, which
+// is the whole reason this map is not Google's any more.
+const MAP_STYLE = "https://tiles.openfreemap.org/styles/bright";
+
+// One level lower than the Google zoom this replaces. MapLibre's world is a
+// 512px square at zoom 0 where Google's is 256px, so the same view sits one
+// level down here.
+const DEFAULT_ZOOM = 13;
+
+// Height of the pin's pointer. The marker is shifted up by this much so the
+// tip, rather than the bottom of the label, sits on the coordinate.
+const POINTER_HEIGHT = 5;
+
+// Clears the pin so the popup doesn't cover the callsign that opened it.
+const POPUP_OFFSET = 28;
 
 export default function MapView({
   center,
@@ -39,6 +61,15 @@ export default function MapView({
   debounceMs = 2000,
 }: Props) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Where the camera was when we last acted on it, so a moveend that has not
+  // actually gone anywhere can be told apart from a pan or a zoom.
+  const lastCamera = useRef({
+    lng: center.lng,
+    lat: center.lat,
+    zoom: DEFAULT_ZOOM,
+  });
+
   const handleMarkerClick = useCallback(
     (id: number) => {
       onOpenIdChange(openId === id ? undefined : id);
@@ -46,51 +77,41 @@ export default function MapView({
     [onOpenIdChange, openId],
   );
 
-  const isFirstEvent = useRef(true);
+  const handleMoveEnd = useCallback(
+    (e: ViewStateChangeEvent) => {
+      const { longitude, latitude, zoom } = e.viewState;
+      const last = lastCamera.current;
 
-  const handleCameraChanged = useCallback(
-    (e: MapCameraChangedEvent) => {
-      if (isFirstEvent.current) {
-        isFirstEvent.current = false;
+      // Sizing the map to its container counts as a move, and acting on it
+      // would re-query the point we have just been given. Skipping the first
+      // event instead would be wrong: that resize does not always happen, and
+      // when it doesn't the visitor's first pan is the one that gets eaten.
+      if (
+        longitude === last.lng &&
+        latitude === last.lat &&
+        zoom === last.zoom
+      ) {
         return;
       }
 
-      const bounds = e.detail.bounds;
-      if (!bounds) return;
+      lastCamera.current = { lng: longitude, lat: latitude, zoom };
 
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
       debounceTimer.current = setTimeout(() => {
-        onCenterChange(e.detail.center as LatLng);
+        onCenterChange({ lat: latitude, lng: longitude });
       }, debounceMs);
     },
     [onCenterChange, debounceMs],
   );
 
-  const map = useMap();
-
-  const handleInfoWindowClose = useCallback(() => {
-    // Only accept close if the marker has scrolled off screen.
-    // Spurious SDK closes while marker is in bounds are ignored here —
-    // genuine user X clicks are handled by onCloseClick instead.
-    if (!map || !openId) return;
-
-    const location = locations.find((l) => l.id === openId);
-    if (!location) return;
-
-    const bounds = map.getBounds();
-    if (!bounds) return;
-
-    const markerPos = new google.maps.LatLng(location.lat, location.lng);
-    if (!bounds.contains(markerPos)) {
-      onOpenIdChange();
-    }
-  }, [map, openId, locations, onOpenIdChange]);
-
-  const handleInfoWindowCloseClick = useCallback(() => {
-    // User explicitly clicked the X button.
-    onOpenIdChange();
-  }, [onOpenIdChange]);
+  // A pan left in flight when the map goes away would otherwise re-query for
+  // the search the visitor has just navigated off.
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
 
   // Map height tracks the viewport rather than a width breakpoint: a phone in
   // landscape is wide but only ~375px tall, so a width-based rule would give it
@@ -99,22 +120,28 @@ export default function MapView({
   return (
     <div className="w-full h-[70svh] min-h-64 max-h-[600px] rounded-lg overflow-hidden">
       <Map
-        defaultCenter={center}
-        defaultZoom={DEFAULT_ZOOM}
-        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
-        onCameraChanged={handleCameraChanged}
-        gestureHandling="greedy"
-        disableDefaultUI={false}
-        zoomControl={true}
+        initialViewState={{
+          longitude: center.lng,
+          latitude: center.lat,
+          zoom: DEFAULT_ZOOM,
+        }}
+        mapStyle={MAP_STYLE}
+        onMoveEnd={handleMoveEnd}
+        // The old map could not rotate or tilt, and a rotated map would leave
+        // the gridsquare rectangles sitting at an angle.
+        dragRotate={false}
+        touchPitch={false}
+        style={{ width: "100%", height: "100%" }}
       >
+        <NavigationControl position="top-right" showCompass={false} />
+
         {locations.map((location) => (
           <LocationMarker
             key={location.id}
             location={location}
             isOpen={openId === location.id}
             onMarkerClick={handleMarkerClick}
-            onInfoWindowClose={handleInfoWindowClose}
-            onInfoWindowCloseClick={handleInfoWindowCloseClick}
+            onPopupClose={onOpenIdChange}
           />
         ))}
         {showGridSquares && gridSquares && (
@@ -125,8 +152,9 @@ export default function MapView({
   );
 }
 
-// Google copies a marker's title to its aria-label, so this is what a screen
-// reader reads when it lands on the marker.
+// What a screen reader reads when it lands on the marker: the pin's own text is
+// just a callsign, which says nothing about where it is or how many stations
+// share the spot.
 function markerTitle(location: Location, stationCount: number): string {
   const address = location.addresses[0];
   const { callsign } = address.stations[0];
@@ -142,80 +170,72 @@ interface LocationMarkerProps {
   location: Location;
   isOpen: boolean;
   onMarkerClick: (id: number) => void;
-  onInfoWindowClose: () => void;
-  onInfoWindowCloseClick: () => void;
+  onPopupClose: () => void;
 }
 
 function LocationMarker({
   location,
   isOpen,
   onMarkerClick,
-  onInfoWindowClose,
-  onInfoWindowCloseClick,
+  onPopupClose,
 }: LocationMarkerProps) {
-  const [markerEl, setMarkerEl] =
-    useState<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(
-    null,
-  );
-  const markerLib = useMapsLibrary("marker");
-
-  const handleMarkerRef = useCallback(
-    (el: google.maps.marker.AdvancedMarkerElement | null) => {
-      markerRef.current = el;
-      setMarkerEl(el);
-    },
-    [],
-  );
-
   const stationCount = location.addresses.reduce((acc, address) => {
     return acc + address.stations.length;
   }, 0);
 
-  // The pin's glyph is drawn content, so it never reaches the accessibility
-  // tree — without this the marker announces as an unnamed button.
   const title = markerTitle(location, stationCount);
-
-  useEffect(() => {
-    if (!markerRef.current || !markerLib) return;
-
-    const plus = stationCount > 1 ? " +" : "";
-
-    const pin = new markerLib.PinElement({
-      glyphText: `${location.addresses[0].stations[0].callsign}${plus}`,
-      glyphColor: "black",
-      background: "#EA4335",
-      borderColor: "#C5221F",
-    } as google.maps.marker.PinElementOptions);
-
-    markerRef.current.content = pin;
-
-    return () => {
-      if (markerRef.current) markerRef.current.content = null;
-    };
-  }, [markerEl, markerLib, location, stationCount]);
+  const plus = stationCount > 1 ? " +" : "";
 
   const handleClick = useCallback(() => {
     onMarkerClick(location.id);
   }, [onMarkerClick, location.id]);
 
+  const popupRef = useRef<PopupInstance | null>(null);
+
+  // MapLibre decides which side of the pin the popup sits on from the popup's
+  // height, which is still zero at the moment it is created: React has not
+  // filled in the content yet. Setting the position again once it has makes
+  // that choice a second time, with a height to work from.
+  useEffect(() => {
+    popupRef.current?.setLngLat([location.lng, location.lat]);
+  }, [isOpen, location.lng, location.lat]);
+
   return (
     <>
-      <AdvancedMarker
-        ref={handleMarkerRef}
-        position={{ lat: location.lat, lng: location.lng }}
-        title={title}
-        onClick={handleClick}
-      />
+      <Marker
+        longitude={location.lng}
+        latitude={location.lat}
+        anchor="bottom"
+        offset={[0, -POINTER_HEIGHT]}
+      >
+        {/* A real button rather than a styled div: the pin has to be reachable
+            by keyboard, and it is the only way into the station details. */}
+        <button
+          type="button"
+          aria-label={title}
+          aria-expanded={isOpen}
+          onClick={handleClick}
+          className="relative block cursor-pointer rounded-sm border border-[#C5221F] bg-[#EA4335] px-1 py-px text-xs font-bold leading-tight text-black whitespace-nowrap after:absolute after:left-1/2 after:top-full after:-ml-[5px] after:border-[5px] after:border-transparent after:border-t-[#C5221F] after:content-['']"
+        >
+          {location.addresses[0].stations[0].callsign}
+          {plus}
+        </button>
+      </Marker>
 
-      {isOpen && markerEl && (
-        <InfoWindow
-          anchor={markerEl}
-          onClose={onInfoWindowClose}
-          onCloseClick={onInfoWindowCloseClick}
+      {isOpen && (
+        <Popup
+          ref={popupRef}
+          longitude={location.lng}
+          latitude={location.lat}
+          offset={POPUP_OFFSET}
+          closeOnClick={false}
+          // Wrapped: MapLibre hands onClose the popup event, which would
+          // otherwise arrive as the id to open.
+          onClose={() => onPopupClose()}
+          maxWidth="none"
         >
           <LocationContent location={location} />
-        </InfoWindow>
+        </Popup>
       )}
     </>
   );
