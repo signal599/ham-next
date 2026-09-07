@@ -32,9 +32,11 @@ export default function MarkdownArticle({
 }) {
   return (
     <PageLayout title={title}>
-      <Markdown components={components} rehypePlugins={[rehypeRaw]}>
-        {body}
-      </Markdown>
+      <div className="markdown-article">
+        <Markdown components={components} rehypePlugins={[rehypeRaw]}>
+          {body}
+        </Markdown>
+      </div>
     </PageLayout>
   );
 }

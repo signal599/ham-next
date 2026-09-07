@@ -38,3 +38,17 @@ body {
   font-size: 22px;
   line-height: 1;
 }
+
+/* The typography plugin spaces h2 for long-form articles: 2em above, 1em
+   below. Our articles are short sections under headings, where that reads as a
+   gap rather than a grouping. Halved, so a heading sits nearer the text it
+   introduces than the section it follows.
+
+   Scoped to article bodies rather than all of .prose: the status page and the
+   blog sidebar have headings of their own that are page furniture, not prose,
+   and one of them sets its own margin with a utility. Unlayered so it beats
+   the plugin's rules, which sit in the utilities layer. */
+.markdown-article h2 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
