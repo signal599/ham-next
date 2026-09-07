@@ -35,8 +35,8 @@ interface Props {
   showExportLink?: boolean;
 }
 
-// Set when the user submits a search, so the map is brought into view once the
-// results land. On a phone the map sits below the fold and without this a
+// Set when a map has been asked for, so it is brought into view once the
+// results land. On a phone the map sits below the fold, and without this a
 // search looks like it did nothing. This can't be a ref: submitting navigates
 // to a new slug, which remounts MapPage and would reset it.
 let pendingScrollToMap = false;
@@ -63,6 +63,13 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
     if (!query) return;
     fetchStations(query);
   }, [query]);
+
+  // Arriving on a /map/<slug> link counts as asking for the map just as much as
+  // submitting the form does, so it scrolls the same way. Declared above the
+  // scroll itself so the flag is set before that first runs.
+  useEffect(() => {
+    if (initialQuery) pendingScrollToMap = true;
+  }, [initialQuery]);
 
   useEffect(() => {
     if (!pendingScrollToMap || !center) return;
