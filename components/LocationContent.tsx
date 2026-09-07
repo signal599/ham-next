@@ -12,7 +12,7 @@ interface Props {
 // inside whatever that leaves.
 export default function LocationContent({ location }: Props) {
   return (
-    <div className="text-sm max-w-64 max-h-[calc(min(35svh,300px)-68px)] overflow-y-auto pb-2 pr-3">
+    <div className="text-sm max-w-64 max-h-[calc(min(35svh,300px)-68px)] overflow-y-auto pr-3">
       {location.addresses.map((address, i) => (
         <div key={address.id}>
           {i > 0 && <hr className="my-2 border-gray-200" />}
