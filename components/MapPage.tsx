@@ -30,17 +30,9 @@ interface Props {
 // to a new slug, which remounts MapPage and would reset it.
 let pendingScrollToMap = false;
 
-// A plain GET of /map/<something> pre-fills the form but does not draw a map:
-// crawlers hit those slugs in bulk, and every rendered map is a billed Google
-// Maps load. The map is drawn only once the visitor submits the form. Like the
-// flag above this can't be state or a ref, because searching navigates to a new
-// slug and remounts MapPage.
-let mapActivated = false;
-
 export default function MapPage({ initialQuery, showExportLink }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState<SearchQuery | null>(initialQuery);
-  const [activated, setActivated] = useState(mapActivated);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(
     null,
   );
@@ -57,9 +49,9 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!query || !activated) return;
+    if (!query) return;
     fetchStations(query);
-  }, [query, activated]);
+  }, [query]);
 
   useEffect(() => {
     if (!pendingScrollToMap || !center) return;
@@ -110,8 +102,6 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
 
   function handleSearch(newQuery: SearchQuery) {
     pendingScrollToMap = true;
-    mapActivated = true;
-    setActivated(true);
     setQuery(newQuery);
     // Next resets scroll to the top of the page on navigation, which would
     // undo the scroll-into-view above (and, on a grid click, throw the user
@@ -130,8 +120,6 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
 
   function handleGridSquareClick(code: string) {
     const query: SearchQuery = { type: "gridsquare", value: code };
-    mapActivated = true;
-    setActivated(true);
     setQuery(query);
     router.push(queryToPath(query), { scroll: false });
   }
@@ -175,7 +163,7 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
         </p>
       )}
 
-      {query && activated && center && (
+      {query && center && (
         <div ref={mapRef} className="scroll-mt-2">
           <MapView
             center={center}
