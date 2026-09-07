@@ -206,7 +206,7 @@ export default function SearchForm({ initialQuery, onSearch }: Props) {
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-sm font-medium px-5 sm:px-4 py-2.5 sm:py-2 rounded transition-colors"
           >
-            Show Map
+            Go
           </button>
         </div>
       )}

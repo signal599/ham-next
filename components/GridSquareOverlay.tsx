@@ -1,47 +1,54 @@
 "use client";
 
-import { useEffect } from "react";
-import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { useMemo } from "react";
+import { Source, Layer } from "react-map-gl/maplibre";
 import { GridSquare } from "@/lib/map-types";
 import { getGridSquareBounds } from "@/lib/gridsquares";
 
 interface Props {
   gridSquares: GridSquare[];
-  onGridClick?: (code: string) => void;
 }
 
-export default function GridSquareOverlay({ gridSquares, onGridClick }: Props) {
-  const map = useMap();
-  const mapsLib = useMapsLibrary("maps");
+export default function GridSquareOverlay({ gridSquares }: Props) {
+  // One outline per subsquare, drawn as a single line layer. The rectangles
+  // this replaces were individual map objects that had to be torn down by hand.
+  const data = useMemo(() => {
+    return {
+      type: "FeatureCollection" as const,
+      features: gridSquares.map((sq) => {
+        const b = getGridSquareBounds(sq.lat, sq.lng);
 
-  useEffect(() => {
-    if (!map || !mapsLib) return;
-
-//    const flat = gridSquares.flat();
-
-    const rectangles = gridSquares.map((sq) => {
-      const bounds = getGridSquareBounds(sq.lat, sq.lng);
-      const rect = new mapsLib.Rectangle({
-        map,
-        bounds: {
-          north: bounds.north,
-          south: bounds.south,
-          east: bounds.east,
-          west: bounds.west,
-        },
-        strokeColor: "#000000",
-        strokeOpacity: 0.5,
-        strokeWeight: 1,
-        fillOpacity: 0,
-        clickable: false,
-      });
-      return rect;
-    });
-
-    return () => {
-      rectangles.forEach((r) => r.setMap(null));
+        return {
+          type: "Feature" as const,
+          properties: { code: sq.code },
+          geometry: {
+            type: "Polygon" as const,
+            coordinates: [
+              [
+                [b.west, b.north],
+                [b.east, b.north],
+                [b.east, b.south],
+                [b.west, b.south],
+                [b.west, b.north],
+              ],
+            ],
+          },
+        };
+      }),
     };
-  }, [map, mapsLib, gridSquares]);
+  }, [gridSquares]);
 
-  return null;
+  return (
+    <Source id="gridsquares" type="geojson" data={data}>
+      <Layer
+        id="gridsquare-outlines"
+        type="line"
+        paint={{
+          "line-color": "#000000",
+          "line-opacity": 0.5,
+          "line-width": 1,
+        }}
+      />
+    </Source>
+  );
 }

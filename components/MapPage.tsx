@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import SearchForm from "./SearchForm";
-import MapView from "./MapView";
 import {
   SearchQuery,
   GridSquare,
@@ -14,28 +14,36 @@ import {
 import { queryToPath } from "@/lib/parse-slug";
 import { roundPoint } from "@/lib/utils";
 
+// MapLibre is a few hundred KB and touches window as it loads, and most visits
+// to a /map/<something> slug never draw a map at all. Fetching it only once one
+// is actually asked for keeps it out of the page's own bundle.
+const MapView = dynamic(() => import("./MapView"), { ssr: false });
+
+// The box the map fills is sized here rather than inside MapView, so that it
+// takes up its space from the moment the results land instead of when
+// MapView's chunk turns up. Until it does the page is no taller than the
+// window, and the scroll below has nowhere to scroll to.
+//
+// The height tracks the viewport rather than a width breakpoint: a phone in
+// landscape is wide but only ~375px tall, so a width-based rule would give it
+// a map taller than the screen. svh keeps it stable as mobile browsers
+// collapse and expand their URL bar.
+const MAP_BOX = "w-full h-[70svh] min-h-64 max-h-[600px] rounded-lg overflow-hidden";
+
 interface Props {
   initialQuery: SearchQuery | null;
   showExportLink?: boolean;
 }
 
-// Set when the user submits a search, so the map is brought into view once the
-// results land. On a phone the map sits below the fold and without this a
+// Set when a map has been asked for, so it is brought into view once the
+// results land. On a phone the map sits below the fold, and without this a
 // search looks like it did nothing. This can't be a ref: submitting navigates
 // to a new slug, which remounts MapPage and would reset it.
 let pendingScrollToMap = false;
 
-// A plain GET of /map/<something> pre-fills the form but does not draw a map:
-// crawlers hit those slugs in bulk, and every rendered map is a billed Google
-// Maps load. The map is drawn only once the visitor submits the form. Like the
-// flag above this can't be state or a ref, because searching navigates to a new
-// slug and remounts MapPage.
-let mapActivated = false;
-
 export default function MapPage({ initialQuery, showExportLink }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState<SearchQuery | null>(initialQuery);
-  const [activated, setActivated] = useState(mapActivated);
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(
     null,
   );
@@ -52,9 +60,16 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!query || !activated) return;
+    if (!query) return;
     fetchStations(query);
-  }, [query, activated]);
+  }, [query]);
+
+  // Arriving on a /map/<slug> link counts as asking for the map just as much as
+  // submitting the form does, so it scrolls the same way. Declared above the
+  // scroll itself so the flag is set before that first runs.
+  useEffect(() => {
+    if (initialQuery) pendingScrollToMap = true;
+  }, [initialQuery]);
 
   useEffect(() => {
     if (!pendingScrollToMap || !center) return;
@@ -105,8 +120,6 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
 
   function handleSearch(newQuery: SearchQuery) {
     pendingScrollToMap = true;
-    mapActivated = true;
-    setActivated(true);
     setQuery(newQuery);
     // Next resets scroll to the top of the page on navigation, which would
     // undo the scroll-into-view above (and, on a grid click, throw the user
@@ -125,8 +138,6 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
 
   function handleGridSquareClick(code: string) {
     const query: SearchQuery = { type: "gridsquare", value: code };
-    mapActivated = true;
-    setActivated(true);
     setQuery(query);
     router.push(queryToPath(query), { scroll: false });
   }
@@ -170,8 +181,8 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
         </p>
       )}
 
-      {query && activated && center && (
-        <div ref={mapRef} className="scroll-mt-2">
+      {query && center && (
+        <div ref={mapRef} className={`scroll-mt-2 ${MAP_BOX}`}>
           <MapView
             center={center}
             locations={locations}

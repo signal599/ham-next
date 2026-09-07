@@ -4,19 +4,44 @@ interface Props {
   location: Location;
 }
 
-// The height cap keeps an address with many stations from filling the map —
-// on a phone an uncapped popup covers it entirely. The content scrolls inside.
+// The height cap keeps an address with many stations from overflowing the map,
+// which clips the popup rather than scrolling it. The worst case is a pin in
+// the middle of the map, leaving half the map's height — the map is 70svh
+// capped at 600px — for the popup to open into, less the 28px it is offset off
+// the pin and the 40px of MapLibre's own popup chrome. The content scrolls
+// inside whatever that leaves.
 export default function LocationContent({ location }: Props) {
   return (
-    <div className="text-sm max-w-64 max-h-[40svh] overflow-y-auto pb-2 pr-3">
+    <div className="text-sm max-w-64 max-h-[calc(min(35svh,300px)-68px)] overflow-y-auto pr-3">
       {location.addresses.map((address, i) => (
         <div key={address.id}>
           {i > 0 && <hr className="my-2 border-gray-200" />}
           <AddressContent address={address} />
         </div>
       ))}
+
+      <p className="mt-2">
+        <a
+          href={mapsUrl(location.lat, location.lng)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-xs"
+        >
+          Google Maps
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </p>
     </div>
   );
+}
+
+// Every address here shares the location's coordinates, so this belongs to the
+// popup rather than to any one of them. Google's documented Maps URL format,
+// which opens the app on a phone and the site on a desktop; it lands on the map
+// rather than in Street View, which is a step away once there and is not always
+// available at a given point.
+function mapsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 }
 
 interface AddressContentProps {
