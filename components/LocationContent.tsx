@@ -25,7 +25,7 @@ export default function LocationContent({ location }: Props) {
           href={mapsUrl(location.lat, location.lng)}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:underline text-sm"
+          className="text-blue-600 hover:underline text-xs"
         >
           Google Maps
           <span className="sr-only"> (opens in a new tab)</span>
