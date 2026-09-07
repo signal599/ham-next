@@ -19,8 +19,29 @@ export default function LocationContent({ location }: Props) {
           <AddressContent address={address} />
         </div>
       ))}
+
+      <p className="mt-2">
+        <a
+          href={mapsUrl(location.lat, location.lng)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline text-sm"
+        >
+          Google Maps
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </p>
     </div>
   );
+}
+
+// Every address here shares the location's coordinates, so this belongs to the
+// popup rather than to any one of them. Google's documented Maps URL format,
+// which opens the app on a phone and the site on a desktop; it lands on the map
+// rather than in Street View, which is a step away once there and is not always
+// available at a given point.
+function mapsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 }
 
 interface AddressContentProps {
