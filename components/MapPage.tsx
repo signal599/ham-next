@@ -19,6 +19,17 @@ import { roundPoint } from "@/lib/utils";
 // is actually asked for keeps it out of the page's own bundle.
 const MapView = dynamic(() => import("./MapView"), { ssr: false });
 
+// The box the map fills is sized here rather than inside MapView, so that it
+// takes up its space from the moment the results land instead of when
+// MapView's chunk turns up. Until it does the page is no taller than the
+// window, and the scroll below has nowhere to scroll to.
+//
+// The height tracks the viewport rather than a width breakpoint: a phone in
+// landscape is wide but only ~375px tall, so a width-based rule would give it
+// a map taller than the screen. svh keeps it stable as mobile browsers
+// collapse and expand their URL bar.
+const MAP_BOX = "w-full h-[70svh] min-h-64 max-h-[600px] rounded-lg overflow-hidden";
+
 interface Props {
   initialQuery: SearchQuery | null;
   showExportLink?: boolean;
@@ -164,7 +175,7 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
       )}
 
       {query && center && (
-        <div ref={mapRef} className="scroll-mt-2">
+        <div ref={mapRef} className={`scroll-mt-2 ${MAP_BOX}`}>
           <MapView
             center={center}
             locations={locations}

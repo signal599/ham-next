@@ -113,42 +113,38 @@ export default function MapView({
     };
   }, []);
 
-  // Map height tracks the viewport rather than a width breakpoint: a phone in
-  // landscape is wide but only ~375px tall, so a width-based rule would give it
-  // a map taller than the screen. svh keeps it stable as mobile browsers
-  // collapse and expand their URL bar.
+  // The box this fills is sized by MapPage, which has to reserve the space
+  // before this component's chunk arrives.
   return (
-    <div className="w-full h-[70svh] min-h-64 max-h-[600px] rounded-lg overflow-hidden">
-      <Map
-        initialViewState={{
-          longitude: center.lng,
-          latitude: center.lat,
-          zoom: DEFAULT_ZOOM,
-        }}
-        mapStyle={MAP_STYLE}
-        onMoveEnd={handleMoveEnd}
-        // The old map could not rotate or tilt, and a rotated map would leave
-        // the gridsquare rectangles sitting at an angle.
-        dragRotate={false}
-        touchPitch={false}
-        style={{ width: "100%", height: "100%" }}
-      >
-        <NavigationControl position="top-right" showCompass={false} />
+    <Map
+      initialViewState={{
+        longitude: center.lng,
+        latitude: center.lat,
+        zoom: DEFAULT_ZOOM,
+      }}
+      mapStyle={MAP_STYLE}
+      onMoveEnd={handleMoveEnd}
+      // The old map could not rotate or tilt, and a rotated map would leave
+      // the gridsquare rectangles sitting at an angle.
+      dragRotate={false}
+      touchPitch={false}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <NavigationControl position="top-right" showCompass={false} />
 
-        {locations.map((location) => (
-          <LocationMarker
-            key={location.id}
-            location={location}
-            isOpen={openId === location.id}
-            onMarkerClick={handleMarkerClick}
-            onPopupClose={onOpenIdChange}
-          />
-        ))}
-        {showGridSquares && gridSquares && (
-          <GridSquares gridSquares={gridSquares} onGridClick={onGridClick} />
-        )}
-      </Map>
-    </div>
+      {locations.map((location) => (
+        <LocationMarker
+          key={location.id}
+          location={location}
+          isOpen={openId === location.id}
+          onMarkerClick={handleMarkerClick}
+          onPopupClose={onOpenIdChange}
+        />
+      ))}
+      {showGridSquares && gridSquares && (
+        <GridSquares gridSquares={gridSquares} onGridClick={onGridClick} />
+      )}
+    </Map>
   );
 }
 
