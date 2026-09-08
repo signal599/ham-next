@@ -296,6 +296,7 @@ export function getMarkerData(
   });
 
   const stationSorter = getStationSorter();
+  const addressSorter = getAddressSorter();
 
   locations.forEach((location) => {
     if (location.addresses.length > 1) {
@@ -307,6 +308,8 @@ export function getMarkerData(
         stationSorter(address.stations, activeCallsign);
       }
     });
+
+    addressSorter(location.addresses, activeCallsign);
   });
 
   return { locations, activeLocationId };
@@ -370,35 +373,61 @@ function getStationName(flatLocation: FlatLocationDTO): string {
   return name.join(" ");
 }
 
-function getStationSorter(): (
-  stations: Station[],
-  activeCallsign: string | null,
-) => void {
-  const rankings = new Map([
+function getOperatorClassRankings(): Map<string, number> {
+  return new Map([
     ["E", 1],
     ["A", 2],
     ["G", 3],
     ["T", 4],
     ["N", 5],
   ]);
+}
+
+function getStationSortValue(stationA: Station, stationB: Station, activeCallsign: string | null, rankings: Map<string, number>): number {
+  // Put the active call at the top/ Otherwise sort by license class.
+  const rankA =
+    activeCallsign && stationA.callsign === activeCallsign
+      ? 0
+      : (rankings.get(stationA.operatorClass) ?? 999);
+  const rankB =
+    activeCallsign && stationB.callsign === activeCallsign
+      ? 0
+      : (rankings.get(stationB.operatorClass) ?? 999);
+
+  if (rankA !== rankB) return rankA - rankB;
+  if (stationA.callsign < stationB.callsign) return -1;
+  if (stationA.callsign > stationB.callsign) return 1;
+
+  return 0;
+}
+
+function getStationSorter(): (
+  stations: Station[],
+  activeCallsign: string | null,
+) => void {
+
+  const rankings = getOperatorClassRankings();
 
   return (stations: Station[], activeCallsign: string | null): void => {
     stations.sort((a: Station, b: Station) => {
+      return getStationSortValue(a, b, activeCallsign, rankings);
+    });
+  };
+}
+
+function getAddressSorter(): (
+  addresses: Address[],
+  activeCallsign: string | null,
+) => void {
+
+  const rankings = getOperatorClassRankings();
+
+  return (addresses: Address[], activeCallsign: string | null): void => {
+    addresses.sort((a: Address, b: Address) => {
       // Put the active call at the top/ Otherwise sort by license class.
-      const rankA =
-        activeCallsign && a.callsign === activeCallsign
-          ? 0
-          : (rankings.get(a.operatorClass) ?? 999);
-      const rankB =
-        activeCallsign && b.callsign === activeCallsign
-          ? 0
-          : (rankings.get(b.operatorClass) ?? 999);
-
-      if (rankA !== rankB) return rankA - rankB;
-      if (a.callsign < b.callsign) return -1;
-      if (a.callsign > b.callsign) return 1;
-
-      return 0;
+      const stationA = a.stations[0];
+      const stationB = b.stations[0];
+      return getStationSortValue(stationA, stationB, activeCallsign, rankings);
     });
   };
 }
