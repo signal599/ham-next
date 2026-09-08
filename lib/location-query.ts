@@ -304,12 +304,16 @@ export function getMarkerData(
     }
 
     location.addresses.forEach((address) => {
+      // Sort stations within an address so higher operator class is first.
       if (address.stations.length > 1) {
         stationSorter(address.stations, activeCallsign);
       }
     });
 
-    addressSorter(location.addresses, activeCallsign);
+    if (location.addresses.length > 1) {
+      // Sort addresses by first station so higher operator class is first.
+      addressSorter(location.addresses, activeCallsign);
+    }
   });
 
   return { locations, activeLocationId };
@@ -383,6 +387,7 @@ function getOperatorClassRankings(): Map<string, number> {
   ]);
 }
 
+// Get the numeric sort comparison value for two stations.
 function getStationSortValue(stationA: Station, stationB: Station, activeCallsign: string | null, rankings: Map<string, number>): number {
   // Put the active call at the top/ Otherwise sort by license class.
   const rankA =
@@ -401,6 +406,7 @@ function getStationSortValue(stationA: Station, stationB: Station, activeCallsig
   return 0;
 }
 
+// Get function to sort stations.
 function getStationSorter(): (
   stations: Station[],
   activeCallsign: string | null,
@@ -415,6 +421,7 @@ function getStationSorter(): (
   };
 }
 
+// Get function to sort addresses by first station.
 function getAddressSorter(): (
   addresses: Address[],
   activeCallsign: string | null,
