@@ -424,10 +424,7 @@ function getAddressSorter(): (
 
   return (addresses: Address[], activeCallsign: string | null): void => {
     addresses.sort((a: Address, b: Address) => {
-      // Put the active call at the top/ Otherwise sort by license class.
-      const stationA = a.stations[0];
-      const stationB = b.stations[0];
-      return getStationSortValue(stationA, stationB, activeCallsign, rankings);
+      return getStationSortValue(a.stations[0], b.stations[0], activeCallsign, rankings);
     });
   };
 }
