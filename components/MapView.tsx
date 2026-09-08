@@ -7,6 +7,7 @@ import Map, {
   NavigationControl,
   type ViewStateChangeEvent,
   type PopupInstance,
+  type MapRef,
 } from "react-map-gl/maplibre";
 import { setWorkerUrl, type Offset } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -82,6 +83,7 @@ export default function MapView({
   onGridClick,
   debounceMs = 2000,
 }: Props) {
+  const mapRef = useRef<MapRef>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Where the camera was when we last acted on it, so a moveend that has not
@@ -127,6 +129,35 @@ export default function MapView({
     [onCenterChange, debounceMs],
   );
 
+  // initialViewState below is only read when the map is created. A fresh
+  // search hands down a new centre while the map is still on screen, so the
+  // camera has to be moved by hand — without this, searching again after a pan
+  // loads the new stations and leaves the visitor looking at the view they
+  // panned to, with every one of them off screen.
+  //
+  // Keyed on the centre object rather than its coordinates: searching the same
+  // callsign a second time should still come home, and MapPage builds a new
+  // object for each search it re-centres on and leaves it alone for the
+  // bounds-driven re-fetches a pan sets off.
+  useEffect(() => {
+    // A pan still waiting out its debounce belongs to the view being left.
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    // The jump raises a moveend of its own. Recording it as the camera we last
+    // acted on keeps that from being read as a pan and re-querying the point we
+    // have just been sent to.
+    lastCamera.current = {
+      lng: center.lng,
+      lat: center.lat,
+      zoom: DEFAULT_ZOOM,
+    };
+
+    mapRef.current?.jumpTo({
+      center: [center.lng, center.lat],
+      zoom: DEFAULT_ZOOM,
+    });
+  }, [center]);
+
   // A pan left in flight when the map goes away would otherwise re-query for
   // the search the visitor has just navigated off.
   useEffect(() => {
@@ -139,6 +170,7 @@ export default function MapView({
   // before this component's chunk arrives.
   return (
     <Map
+      ref={mapRef}
       initialViewState={{
         longitude: center.lng,
         latitude: center.lat,
