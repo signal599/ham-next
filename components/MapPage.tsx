@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import SearchForm from "./SearchForm";
+import Spinner from "./Spinner";
 import {
   SearchQuery,
   GridSquare,
@@ -147,7 +148,9 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
       <div className="flex flex-col gap-4 p-4 bg-white rounded-lg border border-gray-300 w-full max-w-md">
         <SearchForm initialQuery={initialQuery} onSearch={handleSearch} />
 
-        <div className="flex gap-30">
+        {/* justify-between rather than a fixed gap, so the spinner sits at the
+            form's right edge — directly under the Go button that started it. */}
+        <div className="flex items-center justify-between">
           <label className="flex items-center gap-1.5 py-2 cursor-pointer text-sm">
             <input
               type="checkbox"
@@ -160,8 +163,12 @@ export default function MapPage({ initialQuery, showExportLink }: Props) {
           </label>
 
           {loading && (
-            <p aria-hidden="true" className="text-sm m-0 p-0">
-              Loading...
+            <p
+              aria-hidden="true"
+              className="flex items-center gap-2 m-0 text-sm text-gray-500"
+            >
+              Loading
+              <Spinner />
             </p>
           )}
         </div>
