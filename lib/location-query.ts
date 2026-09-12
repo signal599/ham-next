@@ -319,10 +319,12 @@ export function getMarkerData(
   return { locations, activeLocationId };
 }
 
+// Avoid duplicate addresses which vary only by character case.
 function addressCleanup(addresses: Address[]) {
   const addMap = new Map();
 
   addresses.forEach((address) => {
+    // Key is the address in all lower case.
     const key = buildAddressKey(address);
     const existing = addMap.get(key) || [];
     addMap.set(key, [...existing, address]);
@@ -334,6 +336,9 @@ function addressCleanup(addresses: Address[]) {
     if (adds.length === 1) {
       newAddresses.push(adds[0]);
     } else {
+      // We have duplicate addresses which vary only by case.
+      // Choose one but prefer one with lower case. This hopefully gets one which is nicely formatted
+      // with proper case and avoids those that are all upper case.
       const allStations: Station[] = [];
       let bestAddress: Address | null = null;
 
