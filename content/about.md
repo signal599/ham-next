@@ -8,10 +8,6 @@ The Amateur Radio License Map plots the locations of licensed amateur radio oper
 
 It’s been a fun hobby project of mine since 2018.
 
-## How it works
-
-The site is a Next.js application. A companion Node.js command line app downloads the FCC data and geocodes the addresses. See the [Blog](/blog) for the story of how it was built and what has changed along the way. It's all open source. The code can be seen on GitHub [here](https://github.com/signal599/ham-next) and [here](https://github.com/signal599/haminfo-cli).
-
 ## Free resources used
 
 The following free resources make this possible. Thank you to both.
@@ -24,6 +20,10 @@ My only cost is the server at Hetzner at about $15 per month which I use for oth
 ## Data and accuracy
 
 Locations are derived from the mailing address on each licence, which is not always where the station is actually operated from. Treat the map as a rough guide rather than a precise record.
+
+## How it works
+
+The site is a Next.js application. A companion Node.js command line app downloads the FCC data and geocodes the addresses. See the [Blog](/blog) for the story of how it was built and what has changed along the way. It's all open source. The code can be seen on GitHub [here](https://github.com/signal599/ham-next) and [here](https://github.com/signal599/haminfo-cli).
 
 ## Contact
 
