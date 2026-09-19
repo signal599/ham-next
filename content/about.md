@@ -19,7 +19,7 @@ My only cost is the server at Hetzner at about $15 per month which I use for oth
 
 ## Data use and accuracy
 
-Locations are derived from the mailing address on each license which is not always where the station is actually operated from. Treat the map as a rough guide rather than a precise record. Many license holders are not active in the hobby so a marker on the map doesn’t necessarily means that any signals are radiating from that location.
+Locations are derived from the mailing address on each license which is not always where the station is actually operated from. Treat the map as a rough guide rather than a precise record. Many license holders are not active in the hobby so a marker on the map doesn’t necessarily mean that any signals are radiating from that location.
 
 Don’t leap to conclusions if you’re using the map to search for a source of interference. Even if a nearby amateur radio operator is the source of interference to domestic electronic equipment, the technical deficiency is usually with the home equipment, not with the transmitter.
 
