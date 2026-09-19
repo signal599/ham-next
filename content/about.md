@@ -15,7 +15,7 @@ The following free resources make this possible. Thank you to both.
 - [OpenFreeMap](https://openfreemap.org/) provides a free map hosting service with data from [OpenStreetMap](https://www.openstreetmap.org/)
 - [Geocodio](https://www.geocod.io/) is a commercial geocoding service which has a generous free tier and flexible terms of service.
 
-My only cost is the server at Hetzner at about $15 per month which I use for other things anyway and a small donation to OpenFreeMap.
+My only cost is the server at Hetzner at about $15 per month which I use for other things anyway and a small donation to the creator and maintainer of OpenFreeMap.
 
 ## Data use and accuracy
 
