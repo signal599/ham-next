@@ -25,7 +25,7 @@ Don’t leap to conclusions if you’re using the map to search for a source of 
 
 ## How it works
 
-The site is a Next.js application. A companion Node.js command line app downloads the FCC data and geocodes the addresses. See the [Blog](/blog) for the story of how it was built and what has changed along the way. It's all open source. The code can be seen on GitHub [here](https://github.com/signal599/ham-next) and [here](https://github.com/signal599/haminfo-cli).
+The site is a Next.js application. A companion Node.js command line cron driven app downloads the FCC data and geocodes the addresses. See the [Blog](/blog) for the story of how it was built and what has changed along the way. It's all open source. The code can be seen on GitHub [here](https://github.com/signal599/ham-next) and [here](https://github.com/signal599/haminfo-cli).
 
 ## Contact
 
